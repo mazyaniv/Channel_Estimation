@@ -1,2 +1,2 @@
 print("good morning")
-print("good afternon")
+print("good afterijinon")
