@@ -8,14 +8,14 @@ import random
 ############################################################# Variables
 sigma = np.logspace(-1,1,100)
 thresh_space = np.linspace(-5,5,100)
-M = 2
+M = 5
 mu = 1
 sigma_teta = math.sqrt(1)*(1/math.sqrt(2))
 rho_q = 1
 rho_a = 1
 n_a = [1,1,2,2]
 n_q = [10,40,10,40]
-sim = pow(10,4)
+sim = pow(10,1)
 ########Teta
 real_teta = np.random.normal(mu, sigma_teta,M)
 im_teta = np.random.normal(mu, sigma_teta,M)

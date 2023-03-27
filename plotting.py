@@ -37,14 +37,14 @@ teta = real_teta + 1j*im_teta
 ####################################################
 names_of_outputs = ['L_Estimator_zerothresh1.npy','CRB2.npy','L_Estimator.npy','tight1.npy']
 
-L_Estimator_zerothresh1 = np.load('C:/Users/Yaniv/PycharmProjects/pythonProject/L_Estimator_zerothresh1.npy')
-CRB2 = np.load('C:/Users/Yaniv/PycharmProjects/pythonProject/CRB2.npy')
-L_Estimator = np.load('C:/Users/Yaniv/PycharmProjects/pythonProject/L_Estimator.npy')
-tight1 = np.load('C:/Users/Yaniv/PycharmProjects/pythonProject/tight1.npy')
+L_Estimator_numerical1 = np.load('C:/Users/Yaniv/PycharmProjects/pythonProject/L_Estimator_numerical1.npy')
+# CRB2 = np.load('C:/Users/Yaniv/PycharmProjects/pythonProject/CRB2.npy')
+# L_Estimator = np.load('C:/Users/Yaniv/PycharmProjects/pythonProject/L_Estimator.npy')
+# tight1 = np.load('C:/Users/Yaniv/PycharmProjects/pythonProject/tight1.npy')
 
-list_of_outputs = [L_Estimator_zerothresh1, CRB2, L_Estimator,tight1]
+list_of_outputs = [L_Estimator_numerical1]#CRB2, L_Estimator,tight1]
 
-list_of_colors = ['red','blue','pink','black']
+list_of_colors = ['red']#dlue','pink','black']
 for i in range(len(names_of_outputs)):
     plt.plot(10*np.log10(1/sigma), list_of_outputs[i], color=list_of_colors[i])
 
