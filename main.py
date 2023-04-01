@@ -8,14 +8,14 @@ import random
 ############################################################# Variables
 sigma = np.logspace(-1,1,100)
 thresh_space = np.linspace(-5,5,100)
-M = 10
+M =5
 mu = 1
 sigma_teta = math.sqrt(1)*(1/math.sqrt(2))
 rho_q = 1
 rho_a = 1
 n_a = [1,1,2,2]
 n_q = [10,40,10,40]
-sim = pow(10,1)
+sim = pow(10,2)
 ########Teta
 real_teta = np.random.normal(mu, sigma_teta,M)
 im_teta = np.random.normal(mu, sigma_teta,M)
@@ -193,32 +193,32 @@ def CRB(sigma, n_a, n_q,matrix, observ, thresh, naive=1):
     return LA.norm((LA.inv(J)).real,"fro")
 ############################################################# Plot
 matrix_const1 = Matrix(n_a[0],n_q[0])
-# matrix_const2 = Matrix(n_a[0],n_q[1])
-# matrix_const3 = Matrix(n_a[1],n_q[0])
-# matrix_const4 = Matrix(n_a[1],n_q[1])
+matrix_const2 = Matrix(n_a[0],n_q[1])
+matrix_const3 = Matrix(n_a[1],n_q[0])
+matrix_const4 = Matrix(n_a[1],n_q[1])
 
-L_Estimator_numerical1 = [MSE_general_numerical(sigma[i], n_a[0],n_q[0], matrix_const1, sim) for i in range(len(sigma))]
+#L_Estimator_numerical1 = [MSE_general_numerical(sigma[i], n_a[0],n_q[0], matrix_const1, sim) for i in range(len(sigma))]
 # L_Estimator_numerical2 = [MSE_general_numerical(sigma[i], n_a[0],n_q[1], matrix_const2, sim) for i in range(len(sigma))]
 # L_Estimator_numerical3 = [MSE_general_numerical(sigma[i], n_a[1],n_q[0], matrix_const3, sim) for i in range(len(sigma))]
 # L_Estimator_numerical4 = [MSE_general_numerical(sigma[i], n_a[1],n_q[1], matrix_const4, sim) for i in range(len(sigma))]
 
-# L_Estimator_analytic1 = [MSE_zertothresh_analytic(sigma[i], n_a[0],n_q[0]) for i in range(len(sigma))]
-# L_Estimator_analytic2 = [MSE_zertothresh_analytic(sigma[i], n_a[0],n_q[1]) for i in range(len(sigma))]
-# L_Estimator_analytic3 = [MSE_zertothresh_analytic(sigma[i], n_a[1],n_q[0]) for i in range(len(sigma))]
-# L_Estimator_analytic4 = [MSE_zertothresh_analytic(sigma[i], n_a[1],n_q[1]) for i in range(len(sigma))]
+L_Estimator_analytic1 = [MSE_zertothresh_analytic(sigma[i], n_a[0],n_q[0]) for i in range(len(sigma))]
+L_Estimator_analytic2 = [MSE_zertothresh_analytic(sigma[i], n_a[0],n_q[1]) for i in range(len(sigma))]
+L_Estimator_analytic3 = [MSE_zertothresh_analytic(sigma[i], n_a[1],n_q[0]) for i in range(len(sigma))]
+L_Estimator_analytic4 = [MSE_zertothresh_analytic(sigma[i], n_a[1],n_q[1]) for i in range(len(sigma))]
 
-#CRB2 = [CRB(sigma[i],n_a[0],n_q[0],matrix_const1,sim,mu,1) for i in range(len(thresh_space))]
-#CRB4 = [CRB(sigma[i],n_a[0],n_q[1],matrix_const2,sim,mu,1) for i in range(len(thresh_space))]
-#CRB6 = [CRB(sigma[i],n_a[0],n_q[0],matrix_const3,sim,mu,0) for i in range(len(thresh_space))]
-#CRB8 = [CRB(sigma[i],n_a[0],n_q[1],matrix_const4,sim,mu,0) for i in range(len(thresh_space))]
+CRB2 = [CRB(sigma[i],n_a[0],n_q[0],matrix_const1,sim,mu,1) for i in range(len(thresh_space))]
+CRB4 = [CRB(sigma[i],n_a[0],n_q[1],matrix_const2,sim,mu,1) for i in range(len(thresh_space))]
+CRB6 = [CRB(sigma[i],n_a[0],n_q[0],matrix_const3,sim,mu,0) for i in range(len(thresh_space))]
+CRB8 = [CRB(sigma[i],n_a[0],n_q[1],matrix_const4,sim,mu,0) for i in range(len(thresh_space))]
 ######################
-list_of_colors = ['red']#,'blue','pink','black']
+list_of_colors = ['red','blue','pink','black']
 
-# list_of_functions = [CRB2,CRB4,CRB6,CRB8]
-# for i in range(len(list_of_functions)):
-#     plt.plot(10*np.log10(1/sigma), list_of_functions[i],"*", color=list_of_colors[i], label='n_a={}, n_q = {}, CRB'.format(n_a[i], n_q[i]))
+list_of_functions = [CRB2,CRB4,CRB6,CRB8]
+for i in range(len(list_of_functions)):
+    plt.plot(10*np.log10(1/sigma), list_of_functions[i],"*", color=list_of_colors[i], label='n_a={}, n_q = {}, CRB'.format(n_a[i], n_q[i]))
 
-list_of_functions1 = [L_Estimator_numerical1]#,L_Estimator_numerical2,L_Estimator_numerical3,L_Estimator_numerical4]
+list_of_functions1 = [L_Estimator_analytic1 ,L_Estimator_analytic2,L_Estimator_analytic3,L_Estimator_analytic4]
 for i in range(len(list_of_functions1)):
     plt.plot(10*np.log10(1/sigma), list_of_functions1[i], color=list_of_colors[i], label='n_a={}, n_q = {}, numerical'.format(n_a[i], n_q[i]))
 
