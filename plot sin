@@ -1,0 +1,18 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+# make data
+x = np.linspace(0, 10, 1000)
+y = 5.5 + 3.5 * np.sin(10 * x)
+y1 = 4.5*np.ones(np.shape(x)[0])
+# plot
+fig, ax = plt.subplots()
+ax.plot(x, y)
+ax.plot(x, y1, "--")
+ax.set(xlim=(0, 8), xticks=np.arange(1, 8),
+       ylim=(0, 10), yticks=np.arange(1, 10))
+plt.xticks([])
+plt.yticks([])
+plt.text(-0.2, 4.45, '\u03C4',fontsize=25)
+plt.show()
