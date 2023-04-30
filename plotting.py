@@ -35,20 +35,19 @@ real_teta = np.random.normal(mu, sigma_teta)
 im_teta = np.random.normal(mu, sigma_teta)
 teta = real_teta + 1j*im_teta
 ####################################################
-names_of_outputs = ['L_Estimator_zerothresh1.npy','CRB2.npy','L_Estimator.npy','tight1.npy']
+names_of_outputs = ['CRB_1_40_10^3_thresh.npy','L_Estimator_numerical1_40_10^3_thresh.npy']
 
-L_Estimator_numerical1 = np.load('C:/Users/Yaniv/PycharmProjects/pythonProject/L_Estimator_numerical_1_20_10^3.npy')
-# CRB2 = np.load('C:/Users/Yaniv/PycharmProjects/pythonProject/CRB2.npy')
-# L_Estimator = np.load('C:/Users/Yaniv/PycharmProjects/pythonProject/L_Estimator.npy')
-# tight1 = np.load('C:/Users/Yaniv/PycharmProjects/pythonProject/tight1.npy')
+Lower_bound = np.load('C:/Users/Yaniv/PycharmProjects/pythonProject/CRB_1_40_10^3_thresh.npy')
+L_Estimator = np.load('C:/Users/Yaniv/PycharmProjects/pythonProject/L_Estimator_numerical1_40_10^3_thresh.npy')
 
-# list_of_outputs = [L_Estimator_numerical1]#CRB2, L_Estimator,tight1]
-# list_of_colors = ['red']#dlue','pink','black']
+list_of_outputs = [Lower_bound,L_Estimator]
+list_of_colors = ['red',"black"]
+fig = plt.figure(figsize=(10, 6))
 
-#for i in range(len(names_of_outputs)):
-plt.plot(10*np.log10(1/sigma), L_Estimator_numerical1)
+for i in range(len(names_of_outputs)):
+    plt.plot(10*np.log10(1/sigma), list_of_outputs[i], color=list_of_colors[i], label=names_of_outputs[i])
 
-plt.title("CRB with threshold- mu={}, variance ={}".format(mu,2*pow(sigma_teta,2)))
+plt.title("CRB with threshold- mu={}, variance ={}".format(mu,round(2*pow(sigma_teta,2))))
 plt.yscale('log')
 plt.xlabel("SNR [dB]")
 plt.ylabel("BCRB VS L-MSE")
