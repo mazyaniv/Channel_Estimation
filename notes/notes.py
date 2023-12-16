@@ -20,11 +20,11 @@ axes[1,1].set_title('F(-x)')
 axes[2,0].plot(x, norm.cdf(1/x)*norm.cdf(-1/x))
 axes[2,0].set_title('F(x)*F(-x)')
 
-axes[2,1].plot(x, pow(norm.pdf(0/x),2)*(norm.cdf(0/x)*norm.cdf(-0/x)))
+axes[2,1].plot(x, pow(norm.pdf(x),2)*(norm.cdf(x)*norm.cdf(-x)))
 axes[2,1].set_title('(f^2)/(F*F(-x))')
 
-axes[3,0].plot(x, pow(1/x,2)*pow(norm.pdf(0/x),2)*(norm.cdf(0/x)*norm.cdf(-0/x)))
-axes[3,0].set_title('(x^2)*(f^2)/(F*F(-x))')
+axes[3,0].plot(x, pow(x,2)*pow(norm.pdf(x),2)*(norm.cdf(x)*norm.cdf(-x)))
+axes[3,0].set_title('(s^2)*(f^2)/(F*F(-s))')
 
 fig.subplots_adjust(wspace=0.4, hspace=1)
 plt.show()
