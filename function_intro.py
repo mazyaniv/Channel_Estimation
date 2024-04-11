@@ -5,31 +5,8 @@ import random
 
 M =1
 mu = 0
-rho_q = 1
-rho_a = 1
 sim = 100
 sigma_teta = (1/math.sqrt(2))
-def Matrix(na,nq):
-    H_mat = np.zeros((na*M,M), complex)
-    G_mat = np.zeros((nq*M,M), complex)
-    x1 = random.random()
-    y1 = math.sqrt(1 - pow(x1, 2))
-    x2 = random.random()
-    y2 = np.sqrt(1 - np.power(x2, 2))
-    if M>1:
-        H_1 = math.sqrt(rho_a)*unitary_group.rvs(M)
-        G_1 = math.sqrt(rho_q)*unitary_group.rvs(M)
-        for i in range(0,na*M,M):
-            H_mat[i:M+i,:] = H_1
-        for i in range(0,nq*M,M):
-            G_mat[i:M+i,:] = G_1
-    else: #M=1
-        for i in range(0,na*M,M):
-            H_mat[i:M + i, :] = math.sqrt(rho_a)*(x1+1j*y1)
-        for i in range(0,nq*M,M):
-            G_mat[i:M + i, :] = math.sqrt(rho_a)*(x2 + 1j * y2)
-    return H_mat, G_mat
-
 def thresh_G(n_q, Mat):
     if M>1:
         G_teta=Mat@((mu+1j*mu)*np.ones(M))
