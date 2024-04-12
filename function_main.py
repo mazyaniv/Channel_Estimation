@@ -228,7 +228,7 @@ def MSE_general_numerical(sigma1, sigma2, n_a, n_q, matrix, observ, snap=1000, t
 
         x_a, x_q = x(sigma1, sigma2, n_a, n_q, matrix, teta, thresh_real, thresh_im)  # the actually observations
         x_a_vec_norm = x_a - np.mean(x_a_vec)  # matrix[0]@((mu+1j*mu)*np.ones(M))
-        x_q_vec_norm = x_q.reshape(M * n_q, 1) - np.mean(x_q_vec)  #x_e*np.ones((n_q*M,1))
+        x_q_vec_norm = x_q.reshape(M * n_q, 1)-x_e*np.ones((n_q*M,1))#np.mean(x_q_vec)
         x_vec_norm = np.concatenate((x_a_vec_norm, x_q_vec_norm.reshape(M * n_q, )), axis=0)
 
         teta_hat = (cov_teta_x @ cov_x_inv @ x_vec_norm) + (mu + 1j * mu) * np.ones(M)
