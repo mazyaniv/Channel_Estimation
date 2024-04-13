@@ -224,11 +224,11 @@ def MSE_general_numerical(sigma1, sigma2, n_a, n_q, matrix, observ, snap=1000, t
         # p1 = norm.cdf(np.divide(np.subtract(thresh_real,mu_tilda_real.reshape(n_q*M,1)),sigma_tilda.reshape(n_q*M,1)))
         # p2 = norm.cdf(np.divide(np.subtract(thresh_im,mu_tilda_imag.reshape(n_q*M,1)),sigma_tilda.reshape(n_q*M,1)))
         p = norm.cdf(thresh_real / (np.sqrt(0.5 * (sigma1 ** 2 + rho_q)))) * np.ones((n_q * M, 1))
-        x_e = (1 / math.sqrt(2) * (1 - 2 * p) * (1 + 1j))
+        x_e = (1 / math.sqrt(2) )* (1 - 2 * p) * (1 + 1j)
 
         x_a, x_q = x(sigma1, sigma2, n_a, n_q, matrix, teta, thresh_real, thresh_im)  # the actually observations
         x_a_vec_norm = x_a - np.mean(x_a_vec)  # matrix[0]@((mu+1j*mu)*np.ones(M))
-        x_q_vec_norm = x_q.reshape(M * n_q, 1)-x_e*np.ones((n_q*M,1))#np.mean(x_q_vec)
+        x_q_vec_norm = x_q.reshape(M * n_q, 1)-x_e*np.ones((n_q*M,1))#np.mean(x_q_vec)#np.mean(x_q_vec)
         x_vec_norm = np.concatenate((x_a_vec_norm, x_q_vec_norm.reshape(M * n_q, )), axis=0)
 
         teta_hat = (cov_teta_x @ cov_x_inv @ x_vec_norm) + (mu + 1j * mu) * np.ones(M)
