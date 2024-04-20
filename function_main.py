@@ -139,7 +139,7 @@ def E_theta_givenx_Reiman(sigma1, sigma2, n_a, n_q, matrix, observ=sim, thresh_r
 
 def E_theta_givenx_numeric(sigma1, sigma2, n_a, n_q, matrix, observ, monte=sim, thresh_real=0, thresh_im=0):
     MSE = np.zeros((monte, M, M))
-    print("SNR=", 10 * np.log10(1 / sigma1))
+    # print("SNR=", 10 * np.log10(1 / sigma1))
     flag = 1
     for j in range(monte):
         x_a, x_q, theta_org = samp(sigma1, sigma2, n_a, n_q, matrix, 1, thresh_real,
@@ -168,7 +168,7 @@ def E_theta_givenx_numeric(sigma1, sigma2, n_a, n_q, matrix, observ, monte=sim, 
 
         teta_hat = np.mean(result2) / np.mean(result1)
         MSE[j, :, :] = (((teta_hat - theta_org) @ ((teta_hat - theta_org).conjugate().T)).real)
-        print("Finish simulation number:", flag)
+        # print("Finish simulation number:", flag)
         flag += 1
     cov_matrix = np.mean(MSE, 0)
     return LA.norm(cov_matrix, "fro")
