@@ -281,7 +281,7 @@ def CRB_pp(sigma1,sigma2, n_a,n_q,matrix, observ=sim,thresh_real=0,thresh_im=0):
     J = J1 + J2
     return LA.norm((LA.inv(J)).real,"fro")
 
-# def CRB_pp_new(sigma1,sigma2, n_a,n_q,matrix, observ=sim,thresh_real=0,thresh_im=0): #The theoretical numeric_thresh
+# def CRB_pp_new(sigma1,sigma2, n_a,n_q,matrix, observ=sim,thresh_real=0,thresh_im=0): #The theoretical Numeric_thresh
 #     alpha = (2 / math.pi) * math.acos(rho_q / (rho_q + pow(sigma2, 2)))
 #     x_a_vec, x_q_vec, teta_vec = samp(sigma1,sigma2, n_a,n_q, matrix,int(5e4),thresh_real,thresh_im)
 #     teta_samp = teta_vec.transpose()
