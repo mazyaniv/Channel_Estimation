@@ -10,7 +10,7 @@ import scipy.integrate
 # sigma = np.logspace(-1,1,20) #irrelevant for lower sigma
 # #thresh = 0 #np.linspace(-3,3,200)
 # M = 1
-# mu = 0
+# mu = 0 zero mean
 # sigma_teta = math.sqrt(1)*(1/math.sqrt(2))
 # rho_q = 1
 # rho_a = 1
