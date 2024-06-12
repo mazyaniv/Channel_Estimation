@@ -2,7 +2,7 @@ from scipy.stats import norm
 from numpy import linalg as LA
 import scipy.integrate as spi
 from function_intro import *
-rho_a=rho_q=1
+rho_a=rho_q=1 #note
 def MSE_zertothresh_analytic(sigma1,sigma2, n_a,n_q):
     alpha = (2 / math.pi) * math.acos(rho_q / (rho_q + pow(sigma2, 2)))
     beta = ((1-alpha)/rho_q)-((2*rho_a*n_a)/(math.pi*(rho_q+pow(sigma2,2))*(rho_a*n_a+pow(sigma1,2))))
