@@ -1,4 +1,4 @@
-# Channel estimation using mixed resolution data
+# Channel Estimation Using Mixed Resolution Data
 
 In various communication systems such as wireless sensor networks, MIMO communications,
 and cognitive radio, mixed-resolution architectures that incorporate both 1-bit and high-
