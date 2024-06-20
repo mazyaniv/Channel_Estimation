@@ -239,7 +239,7 @@ def MSE_general_numerical(sigma1, sigma2, n_a, n_q, matrix, observ, snap=1000, t
     # print("Error:", LA.norm(cov_matrix, "fro"))#M>1 np.squeeze(cov_matrix)
     # print("========")
 
-def CRB(sigma1,sigma2, n_a,n_q,matrix, quantize=1,observ=sim,thresh_real=0,thresh_im=0):
+def CRB(sigma1,sigma2, n_a,n_q,matrix,observ=sim,quantize=1,thresh_real=0,thresh_im=0):
     teta_samp = samp_teta(observ)
     g_teta = matrix[1] @ teta_samp
     G_normal = matrix[1]/math.sqrt(n_q*rho_q)
@@ -261,7 +261,7 @@ def CRB(sigma1,sigma2, n_a,n_q,matrix, quantize=1,observ=sim,thresh_real=0,thres
         my_vector = [(n_q*rho_q*d[i])*G_normal[i].reshape(M,1).conjugate()*G_normal[i].reshape(M,1).transpose() for  i in range(len(d))]
         J2 = np.sum(my_vector,axis=0)*(1/(2*pow(sigma2, 2)))
     J1 = (1 + (rho_a * n_a / pow(sigma1, 2))) * np.identity(M)
-    J = J1 + J2
+    J = J1
     # my_vector = [((2*pow(sigma1,2)*pow(sigma2,2))+(2*rho_a*n_a*pow(sigma2,2))+n_q*rho_q*d[i]*pow(sigma1,2))*G_normal[i].reshape(M,1).conjugate()*G_normal[i].reshape(M,1).transpose() for  i in range(len(d))]
     # J_sum = np.sum(my_vector,axis=0)*(1/(2*pow(sigma2, 2)*pow(sigma1,2)))
     # my_vector = [(((2 * pow(sigma2, 2))) /((2*pow(sigma1,2)*pow(sigma2,2))+(2*rho_a*n_a*pow(sigma2,2))+n_q*rho_q*d[i]*pow(sigma1,2)))*G_normal[i].reshape(M,1).conjugate()*G_normal[i].reshape(M,1).transpose() for  i in range(len(d))]
@@ -316,27 +316,27 @@ def CRB_pp(sigma1,sigma2, n_a,n_q,matrix, observ=sim,thresh_real=0,thresh_im=0):
 #     J = J1 + J2
 #     return LA.norm((LA.inv(J)).real,"fro")
 
-# def CRB2(sigma1, sigma2, n_a, n_q, matrix, observ=sim, thresh_real=0, thresh_im=0):
-#     teta_samp = samp_teta(observ)
-#     g_teta = matrix[1] @ teta_samp
-#     G_normal = matrix[1] / math.sqrt(n_q * rho_q)
-#     zeta_real = ((math.sqrt(2) / sigma2) * (g_teta.real - thresh_real))
-#     zeta_im = ((math.sqrt(2) / sigma2) * (g_teta.imag - thresh_im))
-#     pdf_real = norm.pdf(zeta_real)
-#     pdf_im = norm.pdf(zeta_im)
-#
-#     d_vec = np.divide(np.power(np.divide(pdf_real, np.power(norm.cdf(-zeta_real), 2)) + \
-#                                np.divide(pdf_real, math.sqrt(2) * norm.cdf(zeta_real)), 2) + \
-#                       np.power(np.divide(pdf_im, np.power(norm.cdf(-zeta_im), 2)) + \
-#                                np.divide(pdf_im, math.sqrt(2) * norm.cdf(zeta_im)), 2),
-#                       np.multiply(norm.cdf(-zeta_real), norm.cdf(-zeta_im)))
-#
-#     d_vec2 = np.power(np.multiply(norm.cdf(-zeta_real), norm.cdf(-zeta_im)), -0.5)
-#
-#     my_vector = [
-#         (n_q * rho_q * d_vec[i, :]) * G_normal[i].reshape(M, 1).conjugate() * G_normal[i].reshape(M, 1).transpose() for
-#         i in range(np.shape(d_vec)[0])]
-#     my_vector = np.array(my_vector)[:, 0, :]
-#     J2 = np.sum(my_vector, axis=0) * (1 / (8 * pow(sigma2, 2)))
-#     bound = ((np.mean(d_vec2).real) ** 2) / (np.mean(J2).real)
-#     return bound
+def CRB2(sigma1, sigma2, n_a, n_q, matrix, observ=sim, thresh_real=0, thresh_im=0):
+    teta_samp = samp_teta(observ)
+    g_teta = matrix[1] @ teta_samp
+    G_normal = matrix[1] / math.sqrt(n_q * rho_q)
+    zeta_real = ((math.sqrt(2) / sigma2) * (g_teta.real - thresh_real))
+    zeta_im = ((math.sqrt(2) / sigma2) * (g_teta.imag - thresh_im))
+    pdf_real = norm.pdf(zeta_real)
+    pdf_im = norm.pdf(zeta_im)
+
+    d_vec = np.divide(np.power(np.divide(pdf_real, np.power(norm.cdf(-zeta_real), 2)) + \
+                               np.divide(pdf_real, math.sqrt(2) * norm.cdf(zeta_real)), 2) + \
+                      np.power(np.divide(pdf_im, np.power(norm.cdf(-zeta_im), 2)) + \
+                               np.divide(pdf_im, math.sqrt(2) * norm.cdf(zeta_im)), 2),
+                      np.multiply(norm.cdf(-zeta_real), norm.cdf(-zeta_im)))
+
+    d_vec2 = np.power(np.multiply(norm.cdf(-zeta_real), norm.cdf(-zeta_im)), -0.5)
+
+    my_vector = [
+        (n_q * rho_q * d_vec[i, :]) * G_normal[i].reshape(M, 1).conjugate() * G_normal[i].reshape(M, 1).transpose() for
+        i in range(np.shape(d_vec)[0])]
+    my_vector = np.array(my_vector)[:, 0, :]
+    J2 = np.sum(my_vector, axis=0) * (1 / (8 * pow(sigma2, 2)))
+    bound = ((np.mean(d_vec2).real) ** 2) / (np.mean(J2).real)
+    return bound
