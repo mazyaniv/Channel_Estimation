@@ -8,6 +8,16 @@ mu = 0
 sim = 100
 sigma_teta = (1/math.sqrt(2))
 
+def CDF_app(x):
+    a = 0.339
+    b = 5.510
+    step_plus = np.heaviside(x, 1)
+    step_minus = np.heaviside(-x, 1)
+    Q_app_plus = (1 / ((1 - a) * x + a * np.sqrt(x**2 + b))) * ((np.exp(-0.5 * x**2)) / math.sqrt(2 * math.pi))
+    Q_app_minus = (1 / ((1 - a) * (-x) + a * np.sqrt(x**2 + b))) * ((np.exp(-0.5 * x**2)) / math.sqrt(2 * math.pi))
+    result = step_minus * (1 - Q_app_minus) + step_plus * Q_app_plus
+    return 1-result
+
 def Matrix(na,nq,rho_a=1):
     rho_q = rho_a
     H_mat = np.zeros((na*M,M), complex)
