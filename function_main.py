@@ -49,22 +49,12 @@ def E_theta_givenx_numeric(sigma1, sigma2, n_a, n_q, matrix, observ, monte=sim, 
 def weighted_fun(theta_real, theta_imag, sigma1, sigma2, na, nq):
     zeta_real = (math.sqrt(2) / sigma2) * (theta_real)
     zeta_im = (math.sqrt(2) / sigma2) * (theta_imag)
-    d = norm.pdf(zeta_real) ** 2 / (CDF_app(zeta_real) * (CDF_app(-zeta_real))) + norm.pdf(zeta_im) ** 2 / (
-                CDF_app(zeta_im) * (CDF_app(-zeta_im)))
-    return 1 / (1 + na / (sigma1 ** 2) + (nq * d) / (2 * sigma2 ** 2))
+    d = norm.pdf(zeta_real) ** 2 / (norm.cdf(zeta_real) * (norm.cdf(-zeta_real))) + norm.pdf(zeta_im) ** 2 / (
+                norm.cdf(zeta_im) * (norm.cdf(-zeta_im)))
+    return 1/(1+(nq*d)/(2*sigma2**2))
 
-# def div_weighted(theta,sigma1,sigma2,na,nq):
-#     zeta_real = (math.sqrt(2) / sigma2) * ((theta).real)
-#     zeta_im = (math.sqrt(2) / sigma2) * ((theta).imag)
-#     d = (norm.pdf(zeta_real)**2/(norm.cdf(zeta_real)*(norm.cdf(-zeta_real))))+(norm.pdf(zeta_im)**2/(norm.cdf(zeta_im)*(norm.cdf(-zeta_im))))
-#     c1,c2,c3 = 2*sigma1**2*sigma2**2, na*sigma2**2+2*sigma1**2*sigma2**2,nq*sigma1**2
-#     divv_d_real = ((-math.sqrt(2)*norm.pdf(zeta_real)**2)/sigma2)*(2*theta.real*norm.cdf(zeta_real)*(norm.cdf(-zeta_real))+
-#                                 norm.pdf(zeta_real)*(1-2*norm.pdf(zeta_real)))/(norm.cdf(zeta_real)*(norm.cdf(-zeta_real)))**2
-#     divv_d_imag = ((-math.sqrt(2)*norm.pdf(zeta_im)**2)/sigma2)*(2*theta.imag*norm.cdf(zeta_im)*(norm.cdf(-zeta_im))+
-#                                         norm.pdf(zeta_im)*(1-2*norm.pdf(zeta_im)))/(norm.cdf(zeta_im)*(norm.cdf(-zeta_im)))**2
-#     return 0.5*(((-c1*c3*divv_d_real)/(c2+c3*d)**2)-1j*((-c1*c3*divv_d_imag)/(c2+c3*d)**2))
 def weighted_BCRB(sigma1, sigma2, n_a, n_q, monte, thresh_real=0, thresh_im=0):
-    monte2 = 500
+    monte2 = 10
     delta = 1e-5
     result = np.zeros((monte))
     weighted_vec = np.zeros((monte))
@@ -80,18 +70,16 @@ def weighted_BCRB(sigma1, sigma2, n_a, n_q, monte, thresh_real=0, thresh_im=0):
             x_a, x_q = x(sigma1, sigma2, n_a, n_q, matrix, theta)
             zeta_real = (math.sqrt(2) / sigma2) * ((matrix[1] * theta).real - thresh_real)
             zeta_im = (math.sqrt(2) / sigma2) * ((matrix[1] * theta).imag - thresh_im)
-            logP_x_q = np.sum(((((norm.pdf(zeta_real) / (CDF_app(zeta_real) * (-CDF_app(-zeta_real)))) *
-                                 (CDF_app(zeta_real) - 0.5 - x_q.real.reshape(n_q, M) / math.sqrt(2))))
-                               - 1j * (((norm.pdf(zeta_im) / (CDF_app(zeta_im) * (-CDF_app(-zeta_im)))) *
-                                        (CDF_app(zeta_im) - 0.5 - x_q.imag.reshape(n_q, M) / math.sqrt(2))))) * (
+            logP_x_q_der = np.sum(((((norm.pdf(zeta_real) / (norm.cdf(zeta_real) * (-norm.cdf(-zeta_real)))) *
+                                 (norm.cdf(zeta_real) - 0.5 - x_q.real.reshape(n_q, M) / math.sqrt(2))))
+                               - 1j * (((norm.pdf(zeta_im) / (norm.cdf(zeta_im) * (-norm.cdf(-zeta_im)))) *
+                                        (norm.cdf(zeta_im) - 0.5 - x_q.imag.reshape(n_q, M) / math.sqrt(2))))) * (
                                           1 / (sigma2 * math.sqrt(2))), 0)
-            logf = -theta.conjugate() + matrix[0].transpose() @ (
-                        x_a.reshape(n_a, M) - matrix[0] * theta).conjugate() / (sigma1 ** 2) + logP_x_q
+            logf_der = -theta.conjugate() + matrix[0].transpose() @ (
+                        x_a.reshape(n_a, M) - matrix[0] * theta).conjugate() / (sigma1 ** 2) + logP_x_q_der
             divv = 0.5 * (((weighted_fun(theta_real + delta, theta_imag, sigma1, sigma2, n_a,
-                                         n_q) - weighted) / delta) - 1j * ((weighted_fun(theta_real, theta_imag + delta,
-                                                                                         sigma1, sigma2, n_a,
-                                                                                         n_q) - weighted) / delta))  # div_weighted(theta,sigma1,sigma2,n_a,n_q)
-            result2[i] = np.abs(divv + weighted * logf) ** 2
+                                         n_q) - weighted) / delta) - 1j * ((weighted_fun(theta_real, theta_imag + delta,sigma1, sigma2, n_a,n_q) - weighted) / delta))  # div_weighted(theta,sigma1,sigma2,n_a,n_q)
+            result2[i] = np.abs(divv + weighted * logf_der) ** 2
         result[j] = np.mean(result2)
     return np.abs(np.mean(weighted_vec)) ** 2 / np.mean(result)
 
