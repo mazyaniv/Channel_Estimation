@@ -31,10 +31,10 @@ def E_theta_givenx_numeric(sigma1, sigma2, n_a, n_q, matrix, observ, monte=sim, 
             zeta_real = (math.sqrt(2) / sigma2) * ((matrix[1] * theta_vec[i]).real - thresh_real)
             zeta_im = (math.sqrt(2) / sigma2) * ((matrix[1] * theta_vec[i]).imag - thresh_im)
 
-            p_xq = np.prod(np.power(CDF_app(zeta_real), (0.5 + x_q.real / math.sqrt(2)).reshape(-1, 1))) \
-                   * np.prod(np.power(CDF_app(zeta_im), (0.5 + x_q.imag / math.sqrt(2)).reshape(-1, 1))) * np.prod(
-                np.power(CDF_app(-zeta_real), (0.5 - x_q.real / math.sqrt(2)).reshape(-1, 1))) * np.prod(
-                np.power(CDF_app(-zeta_im), (0.5 - x_q.imag / math.sqrt(2)).reshape(-1, 1)))
+            p_xq = np.prod(np.power(norm.cdf(zeta_real), (0.5 + x_q.real / math.sqrt(2)).reshape(-1, 1))) \
+                   * np.prod(np.power(norm.cdf(zeta_im), (0.5 + x_q.imag / math.sqrt(2)).reshape(-1, 1))) * np.prod(
+                np.power(norm.cdf(-zeta_real), (0.5 - x_q.real / math.sqrt(2)).reshape(-1, 1))) * np.prod(
+                np.power(norm.cdf(-zeta_im), (0.5 - x_q.imag / math.sqrt(2)).reshape(-1, 1)))
 
             result2[i] = theta_vec[i] * (f_xa * p_xq)
             result1[i] = (f_xa * p_xq)
