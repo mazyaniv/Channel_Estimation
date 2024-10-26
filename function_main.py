@@ -105,8 +105,8 @@ def CRB(sigma1,sigma2, n_a,n_q,matrix,observ=sim,quantize=1,thresh_real=0,thresh
     pdf_im = norm.pdf(zeta_im)
     # d_vec = np.divide(np.power(pdf_real, 2), np.multiply(norm.cdf(zeta_real), (norm.cdf(-zeta_real)))) + \
     #         np.divide(np.power(pdf_im, 2), np.multiply(norm.cdf(zeta_im), (norm.cdf(-zeta_im))))
-    d_vec = np.divide(np.power(pdf_real, 2), np.multiply(CDF_app(zeta_real), (CDF_app(-zeta_real)))) + \
-            np.divide(np.power(pdf_im, 2), np.multiply(CDF_app(zeta_im), (CDF_app(-zeta_im))))
+    d_vec = np.divide(np.power(pdf_real, 2), np.multiply(norm.cdf(zeta_real), (norm.cdf(-zeta_real)))) + \
+            np.divide(np.power(pdf_im, 2), np.multiply(norm.cdf(zeta_im), (norm.cdf(-zeta_im))))
     d = np.mean(d_vec, axis=1) #converges to 0.95 aprox.
     # print(d)
     if quantize == 0:
