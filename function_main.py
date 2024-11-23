@@ -259,6 +259,56 @@ def weighted_BCRB(sigma1, sigma2, n_a, n_q, monte, thresh_real=0, thresh_im=0):
         result[j] = np.mean(result2)
     return np.abs(np.mean(weighted_vec)) ** 2 / np.mean(result)
 
+############################################################################################################ Bhattacharyya - not working well
+def logP_x_q_der(theta,x_q,sigma2, matrix, n_q, thresh_real=0, thresh_im=0):
+    zeta_real = (math.sqrt(2) / sigma2) * ((matrix[1] * theta).real - thresh_real)
+    zeta_im = (math.sqrt(2) / sigma2) * ((matrix[1] * theta).imag - thresh_im)
+    return np.sum(((((norm.pdf(zeta_real) / (norm.cdf(zeta_real) * (-norm.cdf(-zeta_real)))) *
+                                 (norm.cdf(zeta_real) - 0.5 - x_q.real.reshape(n_q, M) / math.sqrt(2))))
+                               - 1j * (((norm.pdf(zeta_im) / (norm.cdf(zeta_im) * (-norm.cdf(-zeta_im)))) *
+                                        (norm.cdf(zeta_im) - 0.5 - x_q.imag.reshape(n_q, M) / math.sqrt(2))))) * (
+                                          1 / (sigma2 * math.sqrt(2))), 0)
+
+def logP_x_q_der2(theta,x_q,sigma2, matrix, n_q, thresh_real=0, thresh_im=0):
+    zeta_real = (math.sqrt(2) / sigma2) * ((matrix[1] * theta).real - thresh_real)
+    zeta_im = (math.sqrt(2) / sigma2) * ((matrix[1] * theta).imag - thresh_im)
+    return np.sum(((((norm.pdf(zeta_real)**2 / (norm.cdf(zeta_real)**2 * (-norm.cdf(-zeta_real))**2)) *
+                                 ((0.5+x_q.real.reshape(n_q, M)/math.sqrt(2))*(-zeta_real*norm.cdf(zeta_real)-norm.pdf(zeta_real))*(norm.cdf(zeta_real)-np.ones(((n_q, M))))**2
+                                  +(0.5-x_q.real.reshape(n_q, M)/math.sqrt(2))*(norm.cdf(zeta_real)-zeta_real-norm.pdf(zeta_real))*(norm.cdf(zeta_real))**2)))
+                               - 1j * (((norm.pdf(zeta_im)**2 / (norm.cdf(zeta_im)**2 * (-norm.cdf(-zeta_im))**2)) *
+                                 ((0.5+x_q.imag.reshape(n_q, M)/math.sqrt(2))*(-zeta_im*norm.cdf(zeta_im)-norm.pdf(zeta_im))*(norm.cdf(zeta_im)-np.ones(((n_q, M))))**2
+                                  +(0.5-x_q.imag.reshape(n_q, M)/math.sqrt(2))*(norm.cdf(zeta_im)-zeta_im-norm.pdf(zeta_im))*(norm.cdf(zeta_im))**2)))) * (
+                                          1 / (sigma2**2 * 2)), 0)
+
+def Bhattacharyya_onebit(sigma1, sigma2, n_a, n_q, monte):
+    monte2 = 50
+    delta = 1e-5
+    G_11 = np.zeros((monte),dtype=complex)
+    G_22 = np.zeros((monte),dtype=complex)
+    G_12 = np.zeros((monte),dtype=complex)
+    theta_org = samp_teta(monte)[0]
+    for j in range(monte):
+        matrix = [np.ones((n_a * M, M)), np.ones((n_q * M, M))]
+        theta_real, theta_imag = theta_org[j].real, theta_org[j].imag
+        theta = theta_real + 1j * theta_imag
+        G_11_argu = np.zeros((monte2),dtype=complex)
+        G_22_argu = np.zeros((monte2),dtype=complex)
+        G_12_argu = np.zeros((monte2),dtype=complex)
+        for i in range(monte2):
+            x_a, x_q = x(sigma1, sigma2, n_a, n_q, matrix, theta)
+            logP_deff = logP_x_q_der(theta,x_q,sigma2, matrix, n_q)
+            logP_deff2 = logP_x_q_der2(theta,x_q,sigma2, matrix, n_q)
+            logf_der = -theta.conjugate()+ logP_deff
+            logf_der_2 = (-1+logP_deff2)
+                          #0.5*(((logP_x_q_der(theta+delta,x_q, sigma2,matrix, n_q) - logP_deff) / delta)-1j*((logP_x_q_der(theta+1j*delta,x_q, sigma2,matrix, n_q) - logP_deff) / delta)))
+            G_11_argu[i] = np.abs(logf_der)**2
+            G_22_argu[i] = np.abs(logf_der_2)**2
+            G_12_argu[i] = logf_der*logf_der_2
+        G_11[j] = np.mean(G_11_argu)
+        G_22[j] = np.mean(G_22_argu)
+        G_12[j] = np.mean(G_12_argu)
+    return 1/np.mean(G_11)+np.abs(np.mean(G_12))**2/np.mean(G_11)*(np.mean(G_11)*np.mean(G_22)-np.abs(np.mean(G_12))**2)
+
 ############################################################################################################ Stein
 def CRB_pp(sigma1,sigma2, n_a,n_q,matrix, observ=sim,thresh_real=0,thresh_im=0): #Mistake
     teta_samp = samp_teta(observ)
@@ -273,67 +323,67 @@ def CRB_pp(sigma1,sigma2, n_a,n_q,matrix, observ=sim,thresh_real=0,thresh_im=0):
     J = J1 + J2
     return LA.norm((LA.inv(J)).real,"fro")
 
-def CRB_pp_new(sigma1,sigma2, n_a,n_q,matrix, observ=sim,thresh_real=0,thresh_im=0): #The theoretical Numeric_thresh - not sure what is it
-    alpha = (2 / math.pi) * math.acos(rho_q / (rho_q + pow(sigma2, 2)))
-    x_a_vec, x_q_vec, teta_vec = samp(sigma1,sigma2, n_a,n_q, matrix,int(5e4),thresh_real,thresh_im)
-    teta_samp = teta_vec.transpose()
-    J2_vec = np.zeros((observ,1), dtype=complex)
-    K = alpha*np.identity(M*n_q)+((1-alpha)/rho_q)*matrix[1]@matrix[1].transpose().conjugate()#covariance(x_q_vec,x_q_vec)
-    # if np.linalg.det(K) == 0: #K is singular
-    #     # print("Singular")
-    #     U,S,V = np.linalg.svd(K)
-    #     # S[S<0.1] = 0.1
-    #     epsilon = np.std(np.diag(S))#random.uniform(0.01, 15)
-    #     K = K+epsilon*np.identity(K.shape[0])# U@np.diag(S)@V
-    # else:
-    #     # print("Non singular")
-    #     while True:
-    #         U,S,V = np.linalg.svd(K)
-    #         epsilon = np.std(np.diag(S))#random.uniform(0.01, 15)
-    #         # S[S<epsilon] = epsilon
-    #         K = K+epsilon*np.identity(K.shape[0])#U@np.diag(S)@V
-    #         if float(LA.cond(K)) < float(1.2):
-    #             # print(epsilon)
-    #             break
-    A = LA.inv(K)
-    for i in range(observ):
-        g_teta = matrix[1]*teta_samp[i]
-        zeta_real = ((math.sqrt(2)/sigma2)*(g_teta.real-thresh_real))
-        zeta_im = ((math.sqrt(2)/sigma2)*(g_teta.imag-thresh_im))
-        pdf_real = norm.pdf(zeta_real)
-        pdf_im = norm.pdf(zeta_im)
-        J2_vec[i] = ((pdf_real+pdf_im)*matrix[1]).transpose().conjugate()@A@((pdf_real+pdf_im)*matrix[1])
-    J2 = (1/(2*pow(sigma2,2)))*np.mean(J2_vec,0)
-    J1 = (1 + (rho_a * n_a / pow(sigma1, 2)))*np.identity(M)
-    J = J1 + J2
-    return LA.norm((LA.inv(J)).real,"fro")
-
-def CRB2(sigma1, sigma2, n_a, n_q, matrix, observ=sim, thresh_real=0, thresh_im=0): #not sure what is it
-    teta_samp = samp_teta(observ)
-    g_teta = matrix[1] @ teta_samp
-    G_normal = matrix[1] / math.sqrt(n_q * rho_q)
-    zeta_real = ((math.sqrt(2) / sigma2) * (g_teta.real - thresh_real))
-    zeta_im = ((math.sqrt(2) / sigma2) * (g_teta.imag - thresh_im))
-    pdf_real = norm.pdf(zeta_real)
-    pdf_im = norm.pdf(zeta_im)
-
-    d_vec = np.divide(np.power(np.divide(pdf_real, np.power(norm.cdf(-zeta_real), 2)) + \
-                               np.divide(pdf_real, math.sqrt(2) * norm.cdf(zeta_real)), 2) + \
-                      np.power(np.divide(pdf_im, np.power(norm.cdf(-zeta_im), 2)) + \
-                               np.divide(pdf_im, math.sqrt(2) * norm.cdf(zeta_im)), 2),
-                      np.multiply(norm.cdf(-zeta_real), norm.cdf(-zeta_im)))
-
-    d_vec2 = np.power(np.multiply(norm.cdf(-zeta_real), norm.cdf(-zeta_im)), -0.5)
-
-    my_vector = [
-        (n_q * rho_q * d_vec[i, :]) * G_normal[i].reshape(M, 1).conjugate() * G_normal[i].reshape(M, 1).transpose() for
-        i in range(np.shape(d_vec)[0])]
-    my_vector = np.array(my_vector)[:, 0, :]
-    J2 = np.sum(my_vector, axis=0) * (1 / (8 * pow(sigma2, 2)))
-    bound = ((np.mean(d_vec2).real) ** 2) / (np.mean(J2).real)
-    return bound
-
-
-
-
-
+# def CRB_pp_new(sigma1,sigma2, n_a,n_q,matrix, observ=sim,thresh_real=0,thresh_im=0): #The theoretical Numeric_thresh - not sure what is it
+#     alpha = (2 / math.pi) * math.acos(rho_q / (rho_q + pow(sigma2, 2)))
+#     x_a_vec, x_q_vec, teta_vec = samp(sigma1,sigma2, n_a,n_q, matrix,int(5e4),thresh_real,thresh_im)
+#     teta_samp = teta_vec.transpose()
+#     J2_vec = np.zeros((observ,1), dtype=complex)
+#     K = alpha*np.identity(M*n_q)+((1-alpha)/rho_q)*matrix[1]@matrix[1].transpose().conjugate()#covariance(x_q_vec,x_q_vec)
+#     # if np.linalg.det(K) == 0: #K is singular
+#     #     # print("Singular")
+#     #     U,S,V = np.linalg.svd(K)
+#     #     # S[S<0.1] = 0.1
+#     #     epsilon = np.std(np.diag(S))#random.uniform(0.01, 15)
+#     #     K = K+epsilon*np.identity(K.shape[0])# U@np.diag(S)@V
+#     # else:
+#     #     # print("Non singular")
+#     #     while True:
+#     #         U,S,V = np.linalg.svd(K)
+#     #         epsilon = np.std(np.diag(S))#random.uniform(0.01, 15)
+#     #         # S[S<epsilon] = epsilon
+#     #         K = K+epsilon*np.identity(K.shape[0])#U@np.diag(S)@V
+#     #         if float(LA.cond(K)) < float(1.2):
+#     #             # print(epsilon)
+#     #             break
+#     A = LA.inv(K)
+#     for i in range(observ):
+#         g_teta = matrix[1]*teta_samp[i]
+#         zeta_real = ((math.sqrt(2)/sigma2)*(g_teta.real-thresh_real))
+#         zeta_im = ((math.sqrt(2)/sigma2)*(g_teta.imag-thresh_im))
+#         pdf_real = norm.pdf(zeta_real)
+#         pdf_im = norm.pdf(zeta_im)
+#         J2_vec[i] = ((pdf_real+pdf_im)*matrix[1]).transpose().conjugate()@A@((pdf_real+pdf_im)*matrix[1])
+#     J2 = (1/(2*pow(sigma2,2)))*np.mean(J2_vec,0)
+#     J1 = (1 + (rho_a * n_a / pow(sigma1, 2)))*np.identity(M)
+#     J = J1 + J2
+#     return LA.norm((LA.inv(J)).real,"fro")
+#
+# def CRB2(sigma1, sigma2, n_a, n_q, matrix, observ=sim, thresh_real=0, thresh_im=0): #not sure what is it
+#     teta_samp = samp_teta(observ)
+#     g_teta = matrix[1] @ teta_samp
+#     G_normal = matrix[1] / math.sqrt(n_q * rho_q)
+#     zeta_real = ((math.sqrt(2) / sigma2) * (g_teta.real - thresh_real))
+#     zeta_im = ((math.sqrt(2) / sigma2) * (g_teta.imag - thresh_im))
+#     pdf_real = norm.pdf(zeta_real)
+#     pdf_im = norm.pdf(zeta_im)
+#
+#     d_vec = np.divide(np.power(np.divide(pdf_real, np.power(norm.cdf(-zeta_real), 2)) + \
+#                                np.divide(pdf_real, math.sqrt(2) * norm.cdf(zeta_real)), 2) + \
+#                       np.power(np.divide(pdf_im, np.power(norm.cdf(-zeta_im), 2)) + \
+#                                np.divide(pdf_im, math.sqrt(2) * norm.cdf(zeta_im)), 2),
+#                       np.multiply(norm.cdf(-zeta_real), norm.cdf(-zeta_im)))
+#
+#     d_vec2 = np.power(np.multiply(norm.cdf(-zeta_real), norm.cdf(-zeta_im)), -0.5)
+#
+#     my_vector = [
+#         (n_q * rho_q * d_vec[i, :]) * G_normal[i].reshape(M, 1).conjugate() * G_normal[i].reshape(M, 1).transpose() for
+#         i in range(np.shape(d_vec)[0])]
+#     my_vector = np.array(my_vector)[:, 0, :]
+#     J2 = np.sum(my_vector, axis=0) * (1 / (8 * pow(sigma2, 2)))
+#     bound = ((np.mean(d_vec2).real) ** 2) / (np.mean(J2).real)
+#     return bound
+#
+#
+#
+#
+#
