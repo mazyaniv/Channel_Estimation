@@ -3,10 +3,10 @@ import math
 from scipy.stats import unitary_group
 import random
 
-M =1 #M=1 for scalar case
 mu = 0
 sim = 100
 sigma_teta = (1/math.sqrt(2))
+M=2
 
 def CDF_app(x):
     a = 0.339
