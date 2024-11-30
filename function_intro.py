@@ -6,7 +6,7 @@ import random
 mu = 0
 sim = 100
 sigma_teta = (1/math.sqrt(2))
-M=2
+M=1
 
 def CDF_app(x):
     a = 0.339
@@ -48,6 +48,7 @@ def thresh_G(n_q, Mat):
     return G_teta.real.reshape(M*n_q, 1), G_teta.imag.reshape(M*n_q, 1)
 
 def x(sigma1,sigma2, n_a,n_q, matrix,theta,thresh_real=0,thresh_im=0): #the observations- function of teta
+    theta = theta.reshape(M, 1)
     sigma_w_a = sigma1 * (1 / math.sqrt(2))
     real_w_a = np.random.normal(mu, sigma_w_a, M*n_a)
     im_w_a = np.random.normal(mu, sigma_w_a, M*n_a)

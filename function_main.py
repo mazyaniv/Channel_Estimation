@@ -14,7 +14,7 @@ def MSE_zertothresh_analytic(sigma1,sigma2, n_a,n_q): #Itay
     return M*(1-first-second)
 
 def MSE_general_numerical(sigma1, sigma2, n_a, n_q, matrix, observ, snap=1000, thresh_real=0, thresh_im=0): #Threshold
-    cov = np.zeros((observ, M, M))
+    cov = np.zeros((observ, M, M),dtype=complex)
     cov_teta_xa = matrix[0].transpose().conjugate()
     x_a_vec, x_q_vec, teta_vec = samp(sigma1, sigma2, n_a, n_q, matrix, snap, thresh_real, thresh_im)
     cov_teta_xq = covariance(teta_vec, x_q_vec)
@@ -55,8 +55,6 @@ def MSE_general_numerical(sigma1, sigma2, n_a, n_q, matrix, observ, snap=1000, t
         real_teta = np.random.normal(mu, sigma_teta, M)
         im_teta = np.random.normal(mu, sigma_teta, M)
         teta = real_teta + 1j * im_teta
-        teta = teta.reshape(M, 1)
-
         # mu_tilda_real = mu*(np.sum(matrix[1].real,axis=1)-np.sum(matrix[1].imag,axis=1))
         # mu_tilda_imag = mu*(np.sum(matrix[1].real,axis=1)+np.sum(matrix[1].imag,axis=1))
         # sigma_tilda = 1+(np.sum(np.power(matrix[1].real,2),axis=1)+np.sum(np.power(matrix[1].imag,2),axis=1))
@@ -71,12 +69,10 @@ def MSE_general_numerical(sigma1, sigma2, n_a, n_q, matrix, observ, snap=1000, t
         x_vec_norm = np.concatenate((x_a_vec_norm, x_q_vec_norm.reshape(M * n_q, )), axis=0)
 
         teta_hat = (cov_teta_x @ cov_x_inv @ x_vec_norm) + (mu + 1j * mu) * np.ones(M)
-        cov[i, :, :] = ((teta_hat - teta.flatten()) @ ((teta_hat - teta.flatten()).conjugate().T))  # m>1, real number
-        # cov[i,:,:] = ((teta_hat-teta)*(teta_hat-teta).conjugate()).real #M=1, real number
+        epsilon = (teta_hat - teta).reshape(M, 1)
+        cov[i, :, :] = (epsilon @ (epsilon.conjugate().T))
     cov_matrix = np.sum(cov, 0) / (np.shape(cov)[0])
-    return LA.norm(cov_matrix, "fro")  # M>1 np.squeeze(cov_matrix)
-    # print("Error:", LA.norm(cov_matrix, "fro"))#M>1 np.squeeze(cov_matrix)
-    # print("========")
+    return LA.norm(cov_matrix, "fro")/math.sqrt(M)
 def E_theta_givenx_numeric(sigma1, sigma2, n_a, n_q, matrix, observ, monte=sim, thresh_real=0, thresh_im=0): #MMSE
     MSE = np.zeros((monte, M, M))
     # print("SNR=", 10 * np.log10(1 / sigma1))

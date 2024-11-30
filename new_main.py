@@ -10,6 +10,7 @@ bound_sim = 1000
 monte = 50
 
 L_Estimator_analytic1 = [MSE_general_numerical(sigma_space[i],sigma_space[i], na,nq,matrix_const1,1000,1000) for i in range(len(sigma_space))]
+print(L_Estimator_analytic1)
 ######################
 fig = plt.figure(figsize=(10, 6))
 plt.plot(10*np.log10(1/sigma_space), L_Estimator_analytic1,linestyle='--',marker="x", label = "LMMSE")
