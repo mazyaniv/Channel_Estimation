@@ -166,7 +166,7 @@ def integ(mu,sigma2,h,thresh_real):
 def BBZ(mu,sigma,h,thresh_real=0):
     return (h**2)/(integ(mu,sigma,h,thresh_real))
 ############################################################################################################ Approximation
-def probability(sigma, nq, matrix, monte): #for LMMSE_numerical_ONEBIT
+def probability(sigma, nq, matrix, monte): #for approximation
     prob_vec = np.zeros((monte))
     for i in range(monte):
         real_teta = np.random.normal(mu, sigma_teta, M)
