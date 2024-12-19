@@ -218,15 +218,15 @@ def ET_CRB(sigma1, sigma2, n_a, n_q, observ=sim):  # M=1 ! its the jensen imqual
                 np.divide(np.power(pdf_im, 2), np.multiply(norm.cdf(zeta_im), (norm.cdf(-zeta_im)))))
 
     return np.mean(1 / (1 + (rho_a * n_a / pow(sigma1, 2)) + d_vec[:1, :] * np.abs(G[0, :]) ** 2))  # M=1 !
-def weighted_fun(theta_real, theta_imag, sigma1, sigma2, na, nq):
+def weighted_fun(theta_real, theta_imag, sigma1, sigma2, na, nq): #TODO: update to analog
+    theta = theta_real + 1j * theta_imag
     zeta_real = (math.sqrt(2) / sigma2) * (theta_real)
     zeta_im = (math.sqrt(2) / sigma2) * (theta_imag)
     d = norm.pdf(zeta_real) ** 2 / (norm.cdf(zeta_real) * (norm.cdf(-zeta_real))) + norm.pdf(zeta_im) ** 2 / (
                 norm.cdf(zeta_im) * (norm.cdf(-zeta_im)))
-    return 1/(1+(nq*d)/(2*sigma2**2))
+    return 1/(np.abs(theta)**2+(nq*d)/(2*sigma2**2))
 
 def weighted_BCRB(sigma1, sigma2, n_a, n_q, monte, thresh_real=0, thresh_im=0):
-    monte2 = 10
     delta = 1e-5
     result = np.zeros((monte))
     weighted_vec = np.zeros((monte))
@@ -237,8 +237,8 @@ def weighted_BCRB(sigma1, sigma2, n_a, n_q, monte, thresh_real=0, thresh_im=0):
         theta = theta_real + 1j * theta_imag
         weighted = weighted_fun(theta_real, theta_imag, sigma1, sigma2, n_a, n_q)
         weighted_vec[j] = weighted
-        result2 = np.zeros((monte2))
-        for i in range(monte2):
+        result2 = np.zeros((monte))
+        for i in range(monte):
             x_a, x_q = x(sigma1, sigma2, n_a, n_q, matrix, theta)
             zeta_real = (math.sqrt(2) / sigma2) * ((matrix[1] * theta).real - thresh_real)
             zeta_im = (math.sqrt(2) / sigma2) * ((matrix[1] * theta).imag - thresh_im)
