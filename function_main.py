@@ -223,7 +223,7 @@ def weighted_fun(theta, sigma1, sigma2, na, nq,matrix): #TODO: update to analog
     zeta_im = (math.sqrt(2) / sigma2)*((matrix[1] * theta).imag)
     d = norm.pdf(zeta_real) ** 2 / (norm.cdf(zeta_real) * (norm.cdf(-zeta_real))) + norm.pdf(zeta_im) ** 2 / (
                 norm.cdf(zeta_im) * (norm.cdf(-zeta_im)))
-    return 1/(abs(theta)**2+((nq*d[0])/(2*sigma2**2))+(na/sigma1**2)) #d[0] since G is block matrix
+    return 1/(abs(theta)**2+(na/sigma1**2)+((nq*d[0])/(2*sigma2**2))) #d[0] since G is a block matrix
 
 def weighted_BCRB(sigma1, sigma2, n_a, n_q,matrix, monte, thresh_real=0, thresh_im=0):
     delta = 1e-5
@@ -246,7 +246,7 @@ def weighted_BCRB(sigma1, sigma2, n_a, n_q,matrix, monte, thresh_real=0, thresh_
                                         (norm.cdf(zeta_im) - 0.5 - x_q.imag.reshape(n_q, M) / math.sqrt(2))))) * (
                                           1 / (sigma2 * math.sqrt(2))), 0)
             logf_der = (-theta.conjugate()
-                        +matrix[0].transpose()@(x_a.reshape(n_a, M)-matrix[0] * theta).conjugate()/(sigma1 ** 2)
+                        +matrix[0].transpose()@(x_a.reshape(n_a, M)-matrix[0] * theta).conjugate()/(sigma1 ** 2) #Kay
                         +logP_x_q_der)
             divv = 0.5 * (((weighted_fun(theta+delta, sigma1, sigma2, n_a,
                                          n_q,matrix) - weighted) / delta) - 1j * ((weighted_fun(theta+1j*delta,sigma1, sigma2, n_a,n_q,matrix) - weighted) / delta))  # div_weighted(theta,sigma1,sigma2,n_a,n_q)
@@ -275,7 +275,7 @@ def logP_x_q_der2(theta,x_q,sigma2, matrix, n_q, thresh_real=0, thresh_im=0):
                                   +(0.5-x_q.imag.reshape(n_q, M)/math.sqrt(2))*(norm.cdf(zeta_im)-zeta_im-norm.pdf(zeta_im))*(norm.cdf(zeta_im))**2)))) * (
                                           1 / (sigma2**2 * 2)), 0)
 
-def Bhattacharyya_onebit(sigma1, sigma2, n_a, n_q, monte):
+def Bhattacharyya_Mixed(sigma1, sigma2, n_a, n_q,matrix, monte):
     monte2 = 50
     delta = 1e-5
     G_11 = np.zeros((monte),dtype=complex)
@@ -283,7 +283,6 @@ def Bhattacharyya_onebit(sigma1, sigma2, n_a, n_q, monte):
     G_12 = np.zeros((monte),dtype=complex)
     theta_org = samp_teta(monte)[0]
     for j in range(monte):
-        matrix = [np.ones((n_a * M, M)), np.ones((n_q * M, M))]
         theta_real, theta_imag = theta_org[j].real, theta_org[j].imag
         theta = theta_real + 1j * theta_imag
         G_11_argu = np.zeros((monte2),dtype=complex)
@@ -293,8 +292,8 @@ def Bhattacharyya_onebit(sigma1, sigma2, n_a, n_q, monte):
             x_a, x_q = x(sigma1, sigma2, n_a, n_q, matrix, theta)
             logP_deff = logP_x_q_der(theta,x_q,sigma2, matrix, n_q)
             logP_deff2 = logP_x_q_der2(theta,x_q,sigma2, matrix, n_q)
-            logf_der = -theta.conjugate()+ logP_deff
-            logf_der_2 = (-1+logP_deff2)
+            logf_der = -theta.conjugate()+logP_deff+matrix[0].transpose()@(x_a.reshape(n_a, M)-matrix[0] * theta).conjugate()/(sigma1 ** 2)
+            logf_der_2 = (-1+logP_deff2+(n_a/sigma1**2)) #TODO
                           #0.5*(((logP_x_q_der(theta+delta,x_q, sigma2,matrix, n_q) - logP_deff) / delta)-1j*((logP_x_q_der(theta+1j*delta,x_q, sigma2,matrix, n_q) - logP_deff) / delta)))
             G_11_argu[i] = np.abs(logf_der)**2
             G_22_argu[i] = np.abs(logf_der_2)**2
@@ -302,7 +301,7 @@ def Bhattacharyya_onebit(sigma1, sigma2, n_a, n_q, monte):
         G_11[j] = np.mean(G_11_argu)
         G_22[j] = np.mean(G_22_argu)
         G_12[j] = np.mean(G_12_argu)
-    return 1/np.mean(G_11)+np.abs(np.mean(G_12))**2/np.mean(G_11)*(np.mean(G_11)*np.mean(G_22)-np.abs(np.mean(G_12))**2)
+    return 1/np.mean(G_11)+np.abs(np.mean(G_12))**2/(np.mean(G_11)*(np.mean(G_11)*np.mean(G_22)-np.abs(np.mean(G_12))**2))
 
 ############################################################################################################ Stein
 def CRB_pp(sigma1,sigma2, n_a,n_q,matrix, observ=sim,thresh_real=0,thresh_im=0): #Mistake
