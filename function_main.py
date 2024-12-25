@@ -159,6 +159,55 @@ def BBZ_func(sigma1, sigma2, n_a, n_q,matrix, monte,h=0.0001, thresh_real=0, thr
                                 (f_xa(theta,x_a)*p_xq(theta,x_q)*prior(theta)))-1)**2
         result[j] = np.mean(result2)
     return 2*h**2/np.mean(result)
+############################################################################################################ Bhattacharyya
+def logP_x_q_der(theta,x_q,sigma2, matrix, n_q, thresh_real=0, thresh_im=0):
+    zeta_real = (math.sqrt(2) / sigma2) * ((matrix[1] * theta).real - thresh_real)
+    zeta_im = (math.sqrt(2) / sigma2) * ((matrix[1] * theta).imag - thresh_im)
+    return np.sum(((((norm.pdf(zeta_real) / (norm.cdf(zeta_real) * (-norm.cdf(-zeta_real)))) *
+                                 (norm.cdf(zeta_real) - 0.5 - x_q.real.reshape(n_q, M) / math.sqrt(2))))
+                               - 1j * (((norm.pdf(zeta_im) / (norm.cdf(zeta_im) * (-norm.cdf(-zeta_im)))) *
+                                        (norm.cdf(zeta_im) - 0.5 - x_q.imag.reshape(n_q, M) / math.sqrt(2))))) * (
+                                          1 / (sigma2 * math.sqrt(2))), 0)
+
+def logP_x_q_der2(theta,x_q,sigma2, matrix, n_q, thresh_real=0, thresh_im=0):
+    zeta_real = (math.sqrt(2) / sigma2) * ((matrix[1] * theta).real - thresh_real)
+    zeta_im = (math.sqrt(2) / sigma2) * ((matrix[1] * theta).imag - thresh_im)
+    return np.sum(((((norm.pdf(zeta_real)**2 / (norm.cdf(zeta_real)**2 * (-norm.cdf(-zeta_real))**2)) *
+                                 ((0.5+x_q.real.reshape(n_q, M)/math.sqrt(2))*(-zeta_real*norm.cdf(zeta_real)-norm.pdf(zeta_real))*(norm.cdf(zeta_real)-np.ones(((n_q, M))))**2
+                                  +(0.5-x_q.real.reshape(n_q, M)/math.sqrt(2))*(norm.cdf(zeta_real)-zeta_real-norm.pdf(zeta_real))*(norm.cdf(zeta_real))**2)))
+                               - 1j * (((norm.pdf(zeta_im)**2 / (norm.cdf(zeta_im)**2 * (-norm.cdf(-zeta_im))**2)) *
+                                 ((0.5+x_q.imag.reshape(n_q, M)/math.sqrt(2))*(-zeta_im*norm.cdf(zeta_im)-norm.pdf(zeta_im))*(norm.cdf(zeta_im)-np.ones(((n_q, M))))**2
+                                  +(0.5-x_q.imag.reshape(n_q, M)/math.sqrt(2))*(norm.cdf(zeta_im)-zeta_im-norm.pdf(zeta_im))*(norm.cdf(zeta_im))**2)))) * (
+                                          1 / (sigma2**2 * 2)), 0)
+
+def Bhattacharyya_func(sigma1, sigma2, n_a, n_q,matrix, monte):
+    monte2 = 100
+    delta = 1e-5
+    G_11 = np.zeros((monte),dtype=complex)
+    G_22 = np.zeros((monte),dtype=complex)
+    G_12 = np.zeros((monte),dtype=complex)
+    theta_org = samp_teta(monte)[0]
+    for j in range(monte):
+        theta_real, theta_imag = theta_org[j].real, theta_org[j].imag
+        theta = theta_real + 1j * theta_imag
+        G_11_argu = np.zeros((monte2),dtype=complex)
+        G_22_argu = np.zeros((monte2),dtype=complex)
+        G_12_argu = np.zeros((monte2),dtype=complex)
+        for i in range(monte2):
+            x_a, x_q = x(sigma1, sigma2, n_a, n_q, matrix, theta)
+            logP_deff = logP_x_q_der(theta,x_q,sigma2, matrix, n_q)
+            logP_deff2 = logP_x_q_der2(theta,x_q,sigma2, matrix, n_q)
+            logf_der = -theta.conjugate()+logP_deff+matrix[0].transpose()@(x_a.reshape(n_a, M)-matrix[0] * theta).conjugate()/(sigma1 ** 2)
+            logf_der_2 = (-1+logP_deff2-(n_a/sigma1**2)) #TODO
+                          #0.5*(((logP_x_q_der(theta+delta,x_q, sigma2,matrix, n_q) - logP_deff) / delta)-1j*((logP_x_q_der(theta+1j*delta,x_q, sigma2,matrix, n_q) - logP_deff) / delta)))
+            G_11_argu[i] = np.abs(logf_der)**2
+            G_22_argu[i] = np.abs(logf_der_2)**2
+            G_12_argu[i] = logf_der*logf_der_2
+        G_11[j] = np.mean(G_11_argu)
+        G_22[j] = np.mean(G_22_argu)
+        G_12[j] = np.mean(G_12_argu)
+    return 1/np.mean(G_11)+np.abs(np.mean(G_12))**2/(np.mean(G_11)*(np.mean(G_11)*np.mean(G_22)-np.abs(np.mean(G_12))**2))
+
 ############################################################################################################ WWB FOR REAL THETA!
 def inner(theta,sigma,s,h,thresh_real):
     return pow(norm.cdf((1/sigma)*(theta+h-thresh_real)),s)*\
@@ -261,82 +310,6 @@ def weighted_BCRB(sigma1, sigma2, n_a, n_q,matrix, monte, thresh_real=0, thresh_
             result2[i] = np.abs(divv + weighted * logf_der) ** 2
         result[j] = np.mean(result2)
     return (np.abs(np.mean(weighted_vec)) ** 2 / np.mean(result)).real
-
-############################################################################################################ Bhattacharyya
-def logP_x_q_der(theta,x_q,sigma2, matrix, n_q, thresh_real=0, thresh_im=0):
-    zeta_real = (math.sqrt(2) / sigma2) * ((matrix[1] * theta).real - thresh_real)
-    zeta_im = (math.sqrt(2) / sigma2) * ((matrix[1] * theta).imag - thresh_im)
-    return np.sum(((((norm.pdf(zeta_real) / (norm.cdf(zeta_real) * (-norm.cdf(-zeta_real)))) *
-                                 (norm.cdf(zeta_real) - 0.5 - x_q.real.reshape(n_q, M) / math.sqrt(2))))
-                               - 1j * (((norm.pdf(zeta_im) / (norm.cdf(zeta_im) * (-norm.cdf(-zeta_im)))) *
-                                        (norm.cdf(zeta_im) - 0.5 - x_q.imag.reshape(n_q, M) / math.sqrt(2))))) * (
-                                          1 / (sigma2 * math.sqrt(2))), 0)
-
-def logP_x_q_der2(theta,x_q,sigma2, matrix, n_q, thresh_real=0, thresh_im=0):
-    zeta_real = (math.sqrt(2) / sigma2) * ((matrix[1] * theta).real - thresh_real)
-    zeta_im = (math.sqrt(2) / sigma2) * ((matrix[1] * theta).imag - thresh_im)
-    return np.sum(((((norm.pdf(zeta_real)**2 / (norm.cdf(zeta_real)**2 * (-norm.cdf(-zeta_real))**2)) *
-                                 ((0.5+x_q.real.reshape(n_q, M)/math.sqrt(2))*(-zeta_real*norm.cdf(zeta_real)-norm.pdf(zeta_real))*(norm.cdf(zeta_real)-np.ones(((n_q, M))))**2
-                                  +(0.5-x_q.real.reshape(n_q, M)/math.sqrt(2))*(norm.cdf(zeta_real)-zeta_real-norm.pdf(zeta_real))*(norm.cdf(zeta_real))**2)))
-                               - 1j * (((norm.pdf(zeta_im)**2 / (norm.cdf(zeta_im)**2 * (-norm.cdf(-zeta_im))**2)) *
-                                 ((0.5+x_q.imag.reshape(n_q, M)/math.sqrt(2))*(-zeta_im*norm.cdf(zeta_im)-norm.pdf(zeta_im))*(norm.cdf(zeta_im)-np.ones(((n_q, M))))**2
-                                  +(0.5-x_q.imag.reshape(n_q, M)/math.sqrt(2))*(norm.cdf(zeta_im)-zeta_im-norm.pdf(zeta_im))*(norm.cdf(zeta_im))**2)))) * (
-                                          1 / (sigma2**2 * 2)), 0)
-
-def Bhattacharyya_func(sigma1, sigma2, n_a, n_q,matrix, monte):
-    monte2 = 100
-    delta = 1e-5
-    G_11 = np.zeros((monte),dtype=complex)
-    G_22 = np.zeros((monte),dtype=complex)
-    G_12 = np.zeros((monte),dtype=complex)
-    theta_org = samp_teta(monte)[0]
-    for j in range(monte):
-        theta_real, theta_imag = theta_org[j].real, theta_org[j].imag
-        theta = theta_real + 1j * theta_imag
-        G_11_argu = np.zeros((monte2),dtype=complex)
-        G_22_argu = np.zeros((monte2),dtype=complex)
-        G_12_argu = np.zeros((monte2),dtype=complex)
-        for i in range(monte2):
-            x_a, x_q = x(sigma1, sigma2, n_a, n_q, matrix, theta)
-            logP_deff = logP_x_q_der(theta,x_q,sigma2, matrix, n_q)
-            logP_deff2 = logP_x_q_der2(theta,x_q,sigma2, matrix, n_q)
-            logf_der = -theta.conjugate()+logP_deff+matrix[0].transpose()@(x_a.reshape(n_a, M)-matrix[0] * theta).conjugate()/(sigma1 ** 2)
-            logf_der_2 = (-1+logP_deff2-(n_a/sigma1**2)) #TODO
-                          #0.5*(((logP_x_q_der(theta+delta,x_q, sigma2,matrix, n_q) - logP_deff) / delta)-1j*((logP_x_q_der(theta+1j*delta,x_q, sigma2,matrix, n_q) - logP_deff) / delta)))
-            G_11_argu[i] = np.abs(logf_der)**2
-            G_22_argu[i] = np.abs(logf_der_2)**2
-            G_12_argu[i] = logf_der*logf_der_2
-        G_11[j] = np.mean(G_11_argu)
-        G_22[j] = np.mean(G_22_argu)
-        G_12[j] = np.mean(G_12_argu)
-    return 1/np.mean(G_11)+np.abs(np.mean(G_12))**2/(np.mean(G_11)*(np.mean(G_11)*np.mean(G_22)-np.abs(np.mean(G_12))**2))
-
-# def Bhattacharyya_Mixed(sigma1, sigma2, n_a, n_q,matrix, monte):
-#     monte2 = 100
-#     delta = 1e-5
-#     G_11 = np.zeros((monte),dtype=complex)
-#     G_22 = np.zeros((monte),dtype=complex)
-#     G_12 = np.zeros((monte),dtype=complex)
-#     theta_org = samp_teta(monte)[0]
-#     for j in range(monte):
-#         theta_real, theta_imag = theta_org[j].real, theta_org[j].imag
-#         theta = theta_real + 1j * theta_imag
-#         G_11_argu = np.zeros((monte2),dtype=complex)
-#         G_22_argu = np.zeros((monte2),dtype=complex)
-#         G_12_argu = np.zeros((monte2),dtype=complex)
-#         for i in range(monte2):
-#             x_a, _ = x(sigma1, sigma2, n_a, n_q, matrix, theta)
-#             logf_der = -theta+matrix[0].transpose().conjugate()@(x_a.reshape(n_a, M)-matrix[0]*theta)/(sigma1**2)
-#             logf_der_2 = (-1-(n_a/(sigma1**2)))
-#                           #0.5*(((logP_x_q_der(theta+delta,x_q, sigma2,matrix, n_q) - logP_deff) / delta)-1j*((logP_x_q_der(theta+1j*delta,x_q, sigma2,matrix, n_q) - logP_deff) / delta)))
-#             G_11_argu[i] = np.abs(logf_der)**2
-#             G_22_argu[i] = np.abs(logf_der_2)**2
-#             G_12_argu[i] = logf_der*logf_der_2
-#         G_11[j] = np.mean(G_11_argu)
-#         G_22[j] = np.mean(G_22_argu)
-#         G_12[j] = np.mean(G_12_argu)
-#     return 1/np.mean(G_11)+np.abs(np.mean(G_12))**2/(np.mean(G_11)*(np.mean(G_11)*np.mean(G_22)-np.abs(np.mean(G_12))**2))
-
 ############################################################################################################ Stein
 def CRB_pp(sigma1,sigma2, n_a,n_q,matrix, observ=sim,thresh_real=0,thresh_im=0): #Mistake
     teta_samp = samp_teta(observ)
