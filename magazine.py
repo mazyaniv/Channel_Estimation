@@ -3,12 +3,12 @@ from matplotlib import pyplot as plt
 from function_main import *
 
 sigma_space = np.logspace(-0.8,0.35,10)
-sigma_space2 = np.logspace(-0.8,0.35,16) #for MMSE load
+sigma_space2 = np.logspace(-0.8,0.35,16)
 na = 1
 nq = 40
 matrix_const1 = Matrix(na, nq)
 monte = 100
-bound_sim = int(1e3)
+bound_sim = int(2e3)
 plot_dict = {'LMMSE': 1, 'MMSE': 1, 'WBCRB': 1, 'CRB': 1, 'BBZ': 1,'Bhattacharyya':0, 'Approx': 1}
 
 fig = plt.figure(figsize=(10, 6))
@@ -21,14 +21,15 @@ if plot_dict['MMSE'] == 1:
 if plot_dict['WBCRB'] == 1:
     WBCRB = np.load(f'Bounds_Mixed/WBCRB,na={na},nq={nq},sim=50.npy')
     if plot_dict['Approx'] == 0:
-        plt.plot(10 * np.log10(1 / sigma_space), WBCRB,linestyle=':', label="WBCRB")
+        plt.plot(10 * np.log10(1 / sigma_space), WBCRB,color='orange',linestyle=':', label="WBCRB")
 if plot_dict['CRB'] == 1:
     CRB1 = [CRB(sigma_space[i], sigma_space[i], na, nq, matrix_const1, bound_sim) for i in range(len(sigma_space))]
     if plot_dict['Approx'] == 0:
         plt.plot(10 * np.log10(1 / sigma_space), CRB1, color='black', label="BCRB")
 if plot_dict['BBZ'] == 1:
     BBZ = np.load(f'Bounds_Mixed/BBZ,na={na},nq={nq},sim=1000.npy')
-    plt.plot(10 * np.log10(1 / sigma_space), BBZ,marker=".",  label="BBZ")
+    if plot_dict['Approx'] == 0:
+        plt.plot(10 * np.log10(1 / sigma_space2), np.real(BBZ),color='purple',marker=".",  label="BBZ")
 if plot_dict['Bhattacharyya'] == 1:
     Bhattacharyya = [Bhattacharyya_func(sigma_space[i], sigma_space[i], na, nq, matrix_const1, monte) for i in range(len(sigma_space))]
     plt.plot(10 * np.log10(1 / sigma_space), Bhattacharyya,marker="v",color='purple', label="Bhattacharyya")
@@ -38,7 +39,8 @@ if plot_dict['Approx'] == 1 and plot_dict['CRB'] == 1:
     LMMSE0 = [MSE_zertothresh_analytic(sigma_space[i], sigma_space[i], na, 0) for i in range(len(sigma_space))]
     L_App = [(1-probability_vec[i])*CRB1_copy[i]+probability_vec[i]*LMMSE0[i] for i in range(len(sigma_space))]
     plt.plot(10 * np.log10(1 / sigma_space), L_App, linestyle='-.', color='green', label="Approximation")
-    plt.plot(10 * np.log10(1 / sigma_space), WBCRB, linestyle=':', label="WBCRB")
+    plt.plot(10 * np.log10(1 / sigma_space), WBCRB,color='orange', linestyle=':', label="WBCRB")
+    plt.plot(10 * np.log10(1 / sigma_space2), np.real(BBZ), color='purple', marker=".", label="BBZ")
     plt.plot(10 * np.log10(1 / sigma_space), CRB1, color='black', label="BCRB")
 
 ax = plt.gca()
