@@ -306,7 +306,7 @@ def ET_CRB(sigma1, sigma2, n_a, n_q, observ=sim):  # M=1 ! its the jensen imqual
                 np.divide(np.power(pdf_real, 2), np.multiply(norm.cdf(zeta_real), (norm.cdf(-zeta_real)))) + \
                 np.divide(np.power(pdf_im, 2), np.multiply(norm.cdf(zeta_im), (norm.cdf(-zeta_im)))))
 
-    return np.mean(1 / (1 + (rho_a * n_a / pow(sigma1, 2)) + d_vec[:1, :] * np.abs(G[0, :]) ** 2))  # M=1 !
+    return np.mean(1/((rho_a * n_a / pow(sigma1, 2)) + d_vec[:1, :]*np.abs(G[0, :]) ** 2))  # M=1 !
 
 def weighted_fun_div(theta, sigma1, sigma2, na, nq,matrix):
     G = matrix[1][0] #block matrix
