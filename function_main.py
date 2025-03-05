@@ -103,6 +103,8 @@ def MSE_general_numerical(sigma1, sigma2, n_a, n_q, matrix, observ, snap=1000, t
 #         MSE[j] = (((teta_hat - theta_org)*((teta_hat - theta_org).conjugate())).real)
 #     return np.mean(MSE)
 def MMSE_func(sigma1, sigma2, n_a, n_q, matrix,monte,snap, thresh_real=0, thresh_im=0):
+    # q = (1 /(math.pi))*math.exp(-np.abs(theta) ** 2)theta_vec[i])))))
+    #prior = (1 /(math.pi))*math.exp(-np.abs(theta) ** 2)theta_vec[i])))))
     MSE = np.zeros((monte))
     for j in range(monte):
         x_a, x_q, theta_org = samp(sigma1, sigma2, n_a, n_q, matrix, 1, thresh_real,

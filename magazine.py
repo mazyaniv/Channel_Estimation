@@ -4,8 +4,8 @@ from scipy.io import savemat
 import os
 import math
 
-lower_segment = np.linspace(-3.5, 2.5, 8)
-upper_segment = np.linspace(2.5, 12.5, 20)
+lower_segment = np.linspace(-3.5, 2.5, 2)#8
+upper_segment = np.linspace(2.5, 12.5, 5)#20
 chosen_space = np.concatenate((lower_segment, upper_segment[1:])) #dB
 sigma_space = 10**(-chosen_space/10)
 plot_result = True
@@ -22,10 +22,10 @@ list_output = []
 # sigma_space_MMSE = np.linspace(sigma_space[-index_mmse:][0],sigma_space[-index_mmse:][-1],20)
 # sigma_space_MMSE_2 = np.concatenate((sigma_space[:-index_mmse],sigma_space_MMSE))
 
-resource = [[2,40,'red'],[1,100,'blue']]#[[2,40,'red'],[1,100,'black']]
-# monte,snap = 100,5000
+resource = [[2,40,'red']]#,[1,100,'blue'],[2,40,'red'],[1,100,'black']]
+monte,snap = 10,50
 bound_sim = 10#int(5e3)
-plot_dict = {'LMMSE': 1, 'MMSE': 1 ,'Approx': 0, 'OPT': 0,'WBCRB': 0, 'CRB': 0}
+plot_dict = {'LMMSE': 1, 'MMSE': 1 ,'Approx': 0, 'OPT': 0,'WBCRB': 0, 'CRB': 1}
 for na,nq,color in resource:
     matrix_const0 = Matrix(na, 0)
     matrix_const1 = Matrix(na, nq)
@@ -34,9 +34,10 @@ for na,nq,color in resource:
         list_output.append(LMMSE)
         # plt.plot(chosen_space, LMMSE,linestyle='--',marker="o", label=f"LMMSE")#,$n_a$={na},$n_q$={nq}")
     if plot_dict['MMSE'] == 1: #Basically I need more snap for stability
-        MMSE= np.load(f'MMSE/MMSE,na={na},nq={nq},snap=12000,monte=1200.npy')
-        # MMSE[-1], MMSE[-2] = LMMSE[-1], LMMSE[-2]
+        MMSE = [MMSE_func(sigma_space[i], sigma_space[i], na, nq, matrix_const1, 700,1200) for i in range(len(sigma_space))]
         list_output.append(MMSE)
+        # MMSE= np.load(f'MMSE/MMSE,na={na},nq={nq},snap=12000,monte=1200.npy')
+        # MMSE[-1], MMSE[-2] = LMMSE[-1], LMMSE[-2]
         # plt.plot(np.delete(10 * np.log10(1/chosen_space),[0]), np.delete(MMSE,[0]), linestyle='--', color=color, label=f"MMSE")#,$n_a$={na},$n_q$={nq}")
         #np.delete(np.load(f'MMSE/MMSE,na=1,nq=40,snap=10000,monte=1000.npy'),[5])#[MMSE_func(chosen_space[i], chosen_space[i], na, nq, matrix_const1, monte,snap) for i in range(len(chosen_space))]
         # MMSE1 = [MMSE_func(sigma_space_MMSE[i], sigma_space_MMSE[i], na, nq, matrix_const1, 700,1200) for i in range(len(sigma_space_MMSE))]
@@ -72,9 +73,9 @@ for na,nq,color in resource:
         CRB1 = [CRB(sigma_space[i], sigma_space[i], na, nq, matrix_const1, 10*bound_sim) for i in range(len(chosen_space))]
         list_output.append(CRB1)
     if plot_result:
-        # plt.plot(chosen_space, LMMSE, color=color, linestyle='--', marker="o", label=f"LMMSE") #if plot_dict['LMMSE']=1
+        plt.plot(chosen_space, LMMSE, color=color, linestyle='--', marker="o", label=f"LMMSE") #if plot_dict['LMMSE']=1
         plt.plot(chosen_space, MMSE, color=color, marker="^", label=f"MMSE")
-        plt.plot(chosen_space, L_App, color=color,marker="v",linestyle='--', label=f"Approximation")
+        # plt.plot(chosen_space, L_App, color=color,marker="v",linestyle='--', label=f"Approximation")
         # plt.plot(chosen_space, OPT, color=color,marker='v', label=f"Opt")
         # plt.plot(chosen_space, WBCRB, color=color,marker='.', label=f"WBCRB")
         plt.plot(chosen_space, CRB1,color=color, label=f"BCRB")
