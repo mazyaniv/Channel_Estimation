@@ -103,8 +103,6 @@ def MSE_general_numerical(sigma1, sigma2, n_a, n_q, matrix, observ, snap=1000, t
 #         MSE[j] = (((teta_hat - theta_org)*((teta_hat - theta_org).conjugate())).real)
 #     return np.mean(MSE)
 def MMSE_func(sigma1, sigma2, n_a, n_q, matrix,monte,snap, thresh_real=0, thresh_im=0):
-    # q = (1 /(math.pi))*math.exp(-np.abs(theta) ** 2)theta_vec[i])))))
-    #prior = (1 /(math.pi))*math.exp(-np.abs(theta) ** 2)theta_vec[i])))))
     MSE = np.zeros((monte))
     for j in range(monte):
         x_a, x_q, theta_org = samp(sigma1, sigma2, n_a, n_q, matrix, 1, thresh_real,
@@ -130,6 +128,56 @@ def MMSE_func(sigma1, sigma2, n_a, n_q, matrix,monte,snap, thresh_real=0, thresh
         p_xq = term_real_pos * term_im_pos * term_real_neg * term_im_neg
 
         result1 = f_xa * p_xq
+        result2 = theta_vec * result1
+        # for i in range(len(theta_vec)):
+        #     f_xa = (1 / (pow(math.pi, n_a) * pow(sigma1, 2 * n_a))) * math.exp(np.real((-(1 / pow(sigma1, 2)) * (
+        #         np.subtract(x_a, matrix[0] * theta_vec[i])).transpose().conjugate() @ (np.subtract(x_a, matrix[0] *
+        #                                                                                            theta_vec[i])))))
+        #
+        #     zeta_real = (math.sqrt(2) / sigma2) * ((matrix[1] * theta_vec[i]).real - thresh_real)
+        #     zeta_im = (math.sqrt(2) / sigma2) * ((matrix[1] * theta_vec[i]).imag - thresh_im)
+        #
+        #     p_xq = np.prod(np.power(norm.cdf(zeta_real), (0.5 + x_q.real / math.sqrt(2)).reshape(-1, 1))) \
+        #            * np.prod(np.power(norm.cdf(zeta_im), (0.5 + x_q.imag / math.sqrt(2)).reshape(-1, 1))) * np.prod(
+        #         np.power(norm.cdf(-zeta_real), (0.5 - x_q.real / math.sqrt(2)).reshape(-1, 1))) * np.prod(
+        #         np.power(norm.cdf(-zeta_im), (0.5 - x_q.imag / math.sqrt(2)).reshape(-1, 1)))
+        #
+        #     result2[i] = theta_vec[i] * (f_xa * p_xq)
+        #     result1[i] = (f_xa * p_xq)
+        teta_hat = np.nanmean(result2)/np.nanmean(result1)
+        epsilon = teta_hat-theta_org
+        MSE[j] = np.abs(epsilon)**2
+    MSE = np.nanmean(MSE)
+    return MSE
+
+def MMSE_func_new(sigma1, sigma2, n_a, n_q, matrix,monte,snap, thresh_real=0, thresh_im=0):
+    MSE = np.zeros((monte))
+    for j in range(monte):
+        x_a, x_q, theta_org = samp(sigma1, sigma2, n_a, n_q, matrix, 1, thresh_real,
+                                   thresh_im)  # observations made by original theta
+        theta_org = theta_org[0]
+        theta_vec = samp_teta(snap)[0]
+
+        q = (1 / (math.pi)*pow(0.5, 2)) * np.exp(-(1/pow(0.5, 2))*np.abs(theta_vec) ** 2)
+        prior = (1 /(math.pi))*np.exp(-np.abs(theta_vec) ** 2)
+        diff_xa = x_a[:, None] - matrix[0] * theta_vec
+        f_xa = (1 / (pow(math.pi, n_a) * pow(sigma1, 2 * n_a))) * np.exp(
+            np.real(-1 / pow(sigma1, 2) * np.sum(np.conj(diff_xa) * diff_xa, axis=0)))
+
+        zeta_real = (math.sqrt(2) / sigma2) * ((matrix[1] * theta_vec).real)
+        zeta_im = (math.sqrt(2) / sigma2) * ((matrix[1] * theta_vec).imag)
+        cdf_real_pos = norm.cdf(zeta_real)
+        cdf_im_pos = norm.cdf(zeta_im)
+        cdf_real_neg = norm.cdf(-zeta_real)
+        cdf_im_neg = norm.cdf(-zeta_im)
+
+        term_real_pos = np.prod(np.power(cdf_real_pos, (0.5 + x_q.real / math.sqrt(2))), axis=0)
+        term_im_pos = np.prod(np.power(cdf_im_pos, (0.5 + x_q.imag / math.sqrt(2))), axis=0)
+        term_real_neg = np.prod(np.power(cdf_real_neg, (0.5 - x_q.real / math.sqrt(2))), axis=0)
+        term_im_neg = np.prod(np.power(cdf_im_neg, (0.5 - x_q.imag / math.sqrt(2))), axis=0)
+        p_xq = term_real_pos * term_im_pos * term_real_neg * term_im_neg
+
+        result1 = f_xa * p_xq*prior/q
         result2 = theta_vec * result1
         # for i in range(len(theta_vec)):
         #     f_xa = (1 / (pow(math.pi, n_a) * pow(sigma1, 2 * n_a))) * math.exp(np.real((-(1 / pow(sigma1, 2)) * (
