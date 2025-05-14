@@ -17,9 +17,9 @@ os.makedirs(save_folder, exist_ok=True)
 # file_path = os.path.join(save_folder, 'SNR.mat')
 # savemat(file_path, {'SNR': chosen_space})
 
-resource = [[2,40,'red'],[1,100,'blue']]#,[2,40,'red'],[1,100,'black']]
-bound_sim = 1000#int(5e3)
-plot_dict = {'LMMSE': 0, 'MMSE': 0 ,'Approx': 1, 'OPT': 0,'WBCRB': 1, 'CRB': 0}
+resource = [[2,100,'red'],[1,150,'blue']]#,[2,40,'red'],[1,100,'black']]
+bound_sim = int(5e3)
+plot_dict = {'LMMSE': 0, 'MMSE': 1 ,'Approx': 0, 'OPT': 0,'WBCRB': 0, 'CRB': 0}
 for na,nq,color in resource:
     list_output = []
     matrix_const0 = Matrix(na, 0)
@@ -29,6 +29,8 @@ for na,nq,color in resource:
         list_output.append(LMMSE)
         # plt.plot(chosen_space, LMMSE,linestyle='--',marker="o", label=f"LMMSE")#,$n_a$={na},$n_q$={nq}")
     if plot_dict['MMSE'] == 1: #Basically I need more snap for stability
+        if plot_dict['LMMSE'] == 0:
+            LMMSE = [MSE_zertothresh_analytic(sigma_space[i], sigma_space[i], na, nq) for i in range(len(chosen_space))]
         MMSE= np.load(f'MMSE/MMSE,na={na},nq={nq},snap=12000,monte=1200.npy')
         MMSE[-3:] = LMMSE[-3:]
         list_output.append(MMSE)
@@ -66,15 +68,15 @@ for na,nq,color in resource:
         # plt.plot(10 * np.log10(1 / np.delete(sigma_space2, [3,5,7])), WBCRB1,color='purple',marker="o",linestyle=':', label="WBCRB_old")
 
     if plot_dict['CRB'] == 1:
-        CRB1 = [CRB(sigma_space[i], sigma_space[i], na, nq, matrix_const1, 10*bound_sim) for i in range(len(chosen_space))]
+        CRB1 = [CRB(sigma_space[i], sigma_space[i], na, nq, matrix_const1, 2*bound_sim) for i in range(len(chosen_space))]
         list_output.append(CRB1)
     if plot_result:
-        plt.plot(chosen_space, LMMSE, color=color, linestyle='--', marker="o", label=f"LMMSE") #if plot_dict['LMMSE']=1
+        # plt.plot(chosen_space, LMMSE, color=color, linestyle='--', marker="o", label=f"LMMSE") #if plot_dict['LMMSE']=1
         plt.plot(chosen_space, MMSE, color=color, marker="^", label=f"MMSE")
         # plt.plot(chosen_space, L_App, color=color,marker="v",linestyle='--', label=f"Approximation")
         # plt.plot(chosen_space, OPT, color=color,marker='v', label=f"Opt")
         # plt.plot(chosen_space, WBCRB, color=color,marker='.', label=f"WBCRB")
-        plt.plot(chosen_space, CRB1,color=color, label=f"BCRB")
+        # plt.plot(chosen_space, CRB1,color=color, label=f"BCRB")
     if save_to_mat:
         key_list = [key for key, value in plot_dict.items() if value == 1]
         os.makedirs(save_folder, exist_ok=True)
@@ -97,7 +99,7 @@ if plot_result:
     ax.grid(which='minor', linestyle="--", alpha=0.5)
     plt.title(f"Estimators and Bounds")
     # plt.xlim(-3.6, 8)
-    plt.ylim([np.min(list_output) * 0.8, np.max(list_output) * 1.2])  # Set y-axis limits
+    # plt.ylim([np.min(list_output) * 0.8, np.max(list_output) * 1.2])  # Set y-axis limits
     plt.yscale('log')
     plt.ylabel('MSE')
     plt.xlabel(r"$SNR_{[dB]}$")
