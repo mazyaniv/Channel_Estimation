@@ -391,7 +391,7 @@ def weighted_BCRB(sigma1, sigma2, n_a, n_q,matrix, monte, thresh_real=0, thresh_
         s3[j] = np.abs(weighted_vec_divv)**2#*(weighted_vec[j]**2)
     s2,s3 = s2[~np.isnan(s2)],s3[~np.isnan(s3)]#np.nan_to_num(argu, nan=1e-13)
     weighted_vec = weighted_vec[~np.isnan(weighted_vec)]#np.nan_to_num(weighted_vec, nan=1e-5)
-    return (np.abs(np.mean(weighted_vec))**2/(np.mean(weighted_vec)+2*np.mean(s2).real+np.mean(s3))).real
+    return (np.abs(np.mean(weighted_vec))**2/(np.mean(weighted_vec)+np.mean(s3))+2*np.mean(s2).real).real #+2*np.mean(s2).real
 def weighted_BCRB_old(sigma1, sigma2, n_a, n_q,matrix, monte, thresh_real=0, thresh_im=0):
     delta = 1e-5
     monte2 = int(monte)

@@ -5,18 +5,12 @@ from scipy.io import savemat
 import os
 import math
 
-lower_segment = np.linspace(-3.5, 2.5, 8)
-upper_segment = np.linspace(2.5, 12.5, 20)
-chosen_space = np.concatenate((lower_segment, upper_segment[1:])) #dB np.linspace(-5, 12, 10)
+chosen_space = np.linspace(-6, 6, 20) #dB
 sigma_space = 10**(-chosen_space/10)
 plot_result = 1
 if plot_result:
     fig = plt.figure(figsize=(10, 6))
 save_to_mat = 1
-save_folder = r'C:\Users\Yaniv\Documents\MATLAB'
-os.makedirs(save_folder, exist_ok=True)
-file_path = os.path.join(save_folder, 'SNR_thresh.mat')
-savemat(file_path, {'SNR_thresh': chosen_space})
 list_output = []
 # index_mmse = 12
 # sigma_space = np.logspace(-2,0.35,16) #np.logspace(-0.8,0.35,20)
@@ -39,7 +33,7 @@ for na,nq in resource:
         # plt.plot(chosen_space, LMMSE,linestyle='--',marker="o", label=f"LMMSE")#,$n_a$={na},$n_q$={nq}")
     if plot_dict['MMSE'] == 1: #Basically I need more snap for stability
         # MMSE = [MMSE_func(sigma_space[i], sigma_space[i], na, nq, matrix_const1, bound_sim,100,thresh,thresh) for i in range(len(sigma_space))]
-        MMSE= np.load('Numeric_thresh/MMSE/E_value_thresh,na=1,nq=100,snap=5000,monte=500.npy')
+        MMSE= np.load('Numeric_thresh/MMSE/MMSE,na=0,nq=100,thresh=2.5,snap=12000,monte=1200.npy')
         list_output.append(MMSE)
         # MMSE[-1], MMSE[-2] = LMMSE[-1], LMMSE[-2]
         # plt.plot(np.delete(10 * np.log10(1/chosen_space),[0]), np.delete(MMSE,[0]), linestyle='--', color=color, label=f"MMSE")#,$n_a$={na},$n_q$={nq}")
@@ -85,7 +79,7 @@ for na,nq in resource:
         plt.plot(chosen_space, CRB1, label=f"BCRB")
     if save_to_mat:
         key_list = [key for key, value in plot_dict.items() if value == 1]
-        save_folder = r'C:\Users\Yaniv\Documents\MATLAB'
+        save_folder = r'C:\Users\Yaniv\Documents\MATLAB\thresh'
         os.makedirs(save_folder, exist_ok=True)
         file_path = os.path.join(save_folder, 'SNR_Thersh.mat')
         savemat(file_path, {"chosen_space": chosen_space})
