@@ -5,12 +5,12 @@ from scipy.io import savemat
 import os
 import math
 
-chosen_space = np.linspace(-6, 6, 20) #dB
+chosen_space = np.linspace(-7.5, 5, 20) #dB
 sigma_space = 10**(-chosen_space/10)
 plot_result = 1
+save_to_mat = 0
 if plot_result:
     fig = plt.figure(figsize=(10, 6))
-save_to_mat = 1
 list_output = []
 # index_mmse = 12
 # sigma_space = np.logspace(-2,0.35,16) #np.logspace(-0.8,0.35,20)
@@ -19,8 +19,8 @@ list_output = []
 
 resource = [[1,100]]
 bound_sim = 1000
-thresh = 2.5
-plot_dict = {'LMMSE': 1, 'MMSE': 0 ,'Approx': 1 ,'WBCRB': 1, 'CRB': 1}
+thresh = 0
+plot_dict = {'LMMSE': 1, 'MMSE': 0 ,'Approx': 1 ,'WBCRB': 0, 'CRB': 1}
 for na,nq in resource:
     matrix_const0 = Matrix(na, 0)
     matrix_const1 = Matrix(na, nq)
@@ -28,12 +28,12 @@ for na,nq in resource:
         if thresh == 0:
             LMMSE = [MSE_zertothresh_analytic(sigma_space[i], sigma_space[i], na, nq) for i in range(len(sigma_space))]
         else:
-            LMMSE = np.squeeze([MSE_general_numerical(sigma_space[i], sigma_space[i], na, nq,matrix_const1,10000,thresh,thresh) for i in range(len(chosen_space))])
+            LMMSE = np.squeeze([MSE_general_numerical(sigma_space[i], sigma_space[i], na, nq,matrix_const1,20000,thresh,thresh) for i in range(len(chosen_space))])
         list_output.append(LMMSE)
         # plt.plot(chosen_space, LMMSE,linestyle='--',marker="o", label=f"LMMSE")#,$n_a$={na},$n_q$={nq}")
     if plot_dict['MMSE'] == 1: #Basically I need more snap for stability
-        # MMSE = [MMSE_func(sigma_space[i], sigma_space[i], na, nq, matrix_const1, bound_sim,100,thresh,thresh) for i in range(len(sigma_space))]
-        MMSE= np.load('Numeric_thresh/MMSE/MMSE,na=0,nq=100,thresh=2.5,snap=12000,monte=1200.npy')
+        MMSE = [MMSE_func(sigma_space[i], sigma_space[i], na, nq, matrix_const1, 6000,500,thresh,thresh) for i in range(len(sigma_space))]
+        # MMSE= np.load('Numeric_thresh/MMSE/MMSE,na=0,nq=100,thresh=2.5,snap=12000,monte=1200.npy')
         list_output.append(MMSE)
         # MMSE[-1], MMSE[-2] = LMMSE[-1], LMMSE[-2]
         # plt.plot(np.delete(10 * np.log10(1/chosen_space),[0]), np.delete(MMSE,[0]), linestyle='--', color=color, label=f"MMSE")#,$n_a$={na},$n_q$={nq}")
@@ -43,7 +43,7 @@ for na,nq in resource:
         # MMSE = np.concatenate((MMSE2, MMSE1), axis=0)
     if plot_dict['Approx'] == 1:
         WBCRB = [weighted_BCRB(sigma_space[i], sigma_space[i], na, nq, matrix_const1,bound_sim,thresh,thresh) for i in range(len(chosen_space))]
-        BCRB_a = [CRB(sigma_space[i], sigma_space[i], na,0, matrix_const0, bound_sim,thresh,thresh) for i in range(len(chosen_space))]
+        BCRB_a = LMMSE#[CRB(sigma_space[i], sigma_space[i], na,0, matrix_const0, bound_sim,thresh,thresh) for i in range(len(chosen_space))]
         probability_vec = [probability(sigma_space[i],na,nq, matrix_const1, bound_sim,thresh,thresh) for i in range(len(chosen_space))]
         L_App = [probability_vec[i]*BCRB_a[i]+(1-probability_vec[i])*WBCRB[i] for i in range(len(chosen_space))]
         list_output.append(L_App)
@@ -69,13 +69,13 @@ for na,nq in resource:
         # plt.plot(10 * np.log10(1 / np.delete(sigma_space2, [3,5,7])), WBCRB1,color='purple',marker="o",linestyle=':', label="WBCRB_old")
 
     if plot_dict['CRB'] == 1:
-        CRB1 = [CRB(sigma_space[i], sigma_space[i], na, nq, matrix_const1, bound_sim,thresh,thresh) for i in range(len(chosen_space))]
+        CRB1 = [CRB(sigma_space[i], sigma_space[i], na, nq, matrix_const1, 10000,thresh,thresh) for i in range(len(chosen_space))]
         list_output.append(CRB1)
     if plot_result:
         plt.plot(chosen_space, LMMSE,  linestyle='--', marker="o", label=f"LMMSE") #if plot_dict['LMMSE']=1
         # plt.plot(chosen_space, MMSE, marker="^", label=f"MMSE")
         plt.plot(chosen_space, L_App,marker="v",linestyle='--', label=f"Approximation")
-        plt.plot(chosen_space, WBCRB, marker='.', label=f"WBCRB")
+        # plt.plot(chosen_space, WBCRB, marker='.', label=f"WBCRB")
         plt.plot(chosen_space, CRB1, label=f"BCRB")
     if save_to_mat:
         key_list = [key for key, value in plot_dict.items() if value == 1]
@@ -84,7 +84,7 @@ for na,nq in resource:
         file_path = os.path.join(save_folder, 'SNR_Thersh.mat')
         savemat(file_path, {"chosen_space": chosen_space})
         for i in range(len(key_list)):
-            file_path = os.path.join(save_folder, key_list[i] + '.mat')
+            file_path = os.path.join(save_folder, key_list[i] + '_thresh.mat')
             savemat(file_path, {key_list[i]: list_output[i]})
     # if plot_dict['BBZ'] == 1:
     #     BBZ = np.load(f'Bounds_Mixed/BBZ,na={na},nq={nq},sim=1000.npy')

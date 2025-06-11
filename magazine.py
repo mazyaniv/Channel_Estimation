@@ -12,7 +12,7 @@ sigma_space = 10**(-chosen_space/10)
 plot_result = 1
 if plot_result:
     fig = plt.figure(figsize=(10, 6))
-save_to_mat = 1
+save_to_mat = 0
 save_folder = r'C:\Users\Yaniv\Documents\MATLAB'
 os.makedirs(save_folder, exist_ok=True)
 file_path = os.path.join(save_folder, 'SNR_thresh.mat')
@@ -25,8 +25,8 @@ list_output = []
 
 resource = [[1,100]]
 bound_sim = 1000
-thresh = 2.5
-plot_dict = {'LMMSE': 1, 'MMSE': 0 ,'Approx': 1 ,'WBCRB': 1, 'CRB': 1}
+thresh = 0
+plot_dict = {'LMMSE': 1, 'MMSE': 0 ,'Approx': 0 ,'WBCRB': 1, 'CRB': 1}
 for na,nq in resource:
     matrix_const0 = Matrix(na, 0)
     matrix_const1 = Matrix(na, nq)
@@ -48,10 +48,10 @@ for na,nq in resource:
         # MMSE2 = LMMSE[:-index_mmse]
         # MMSE = np.concatenate((MMSE2, MMSE1), axis=0)
     if plot_dict['Approx'] == 1:
-        WBCRB = [weighted_BCRB(sigma_space[i], sigma_space[i], na, nq, matrix_const1,bound_sim,thresh,thresh) for i in range(len(chosen_space))]
-        BCRB_a = [CRB(sigma_space[i], sigma_space[i], na,0, matrix_const0, bound_sim,thresh,thresh) for i in range(len(chosen_space))]
+        CRB11 = [CRB(sigma_space[i], sigma_space[i], na, nq, matrix_const1,bound_sim,thresh,thresh) for i in range(len(chosen_space))]
+        BCRB_a = LMMSE#[CRB(sigma_space[i], sigma_space[i], na,0, matrix_const0, bound_sim,thresh,thresh) for i in range(len(chosen_space))]
         probability_vec = [probability(sigma_space[i],na,nq, matrix_const1, bound_sim,thresh,thresh) for i in range(len(chosen_space))]
-        L_App = [probability_vec[i]*BCRB_a[i]+(1-probability_vec[i])*WBCRB[i] for i in range(len(chosen_space))]
+        L_App = [probability_vec[i]*BCRB_a[i]+(1-probability_vec[i])*CRB11[i] for i in range(len(chosen_space))]
         list_output.append(L_App)
         # plt.plot(chosen_space, L_App,marker='x', label=f"Approximation")#,$n_a$={na},$n_q$={nq}")
 
@@ -66,8 +66,8 @@ for na,nq in resource:
     #     # WBCRB1 = np.delete(np.load(f'Bounds_Mixed/WBCRB,na={na},nq={nq},sim=1000.npy'),[3,5,7])
     #     # plt.plot(10 * np.log10(1 / np.delete(sigma_space2, [3,5,7])), WBCRB1,color='purple',marker="o",linestyle=':', label="WBCRB_old")
     if plot_dict['WBCRB'] == 1:
-        if plot_dict['Approx'] == 0:
-            WBCRB = [weighted_BCRB(sigma_space[i], sigma_space[i], na, nq, matrix_const1,bound_sim,thresh,thresh) for i in range(len(chosen_space))]
+        # if plot_dict['Approx'] == 0:
+        WBCRB = [weighted_BCRB(sigma_space[i], sigma_space[i], [na,na], [nq,nq], matrix_const1,bound_sim,thresh,thresh) for i in range(len(chosen_space))]
             # WBCRB = np.load('WBCRB_pure_1bit/WBCRB,na=0,nq=100,thresh=2.5,sim=100000.npy')
         list_output.append(WBCRB)
         # plt.plot(chosen_space, WBCRB,marker='.', label=f"WBCRB")#,$n_a$={na},$n_q$={nq}")
@@ -79,8 +79,8 @@ for na,nq in resource:
         list_output.append(CRB1)
     if plot_result:
         plt.plot(chosen_space, LMMSE,  linestyle='--', marker="o", label=f"LMMSE") #if plot_dict['LMMSE']=1
-        # plt.plot(chosen_space, MMSE, marker="^", label=f"MMSE")
-        plt.plot(chosen_space, L_App,marker="v",linestyle='--', label=f"Approximation")
+        # plt.plot(chosen_space, MMSE, marker="^", label=f"approx_wbcrb")
+        # plt.plot(chosen_space, L_App,marker="v",linestyle='--', label=f"Approximation_bcrb")
         plt.plot(chosen_space, WBCRB, marker='.', label=f"WBCRB")
         plt.plot(chosen_space, CRB1, label=f"BCRB")
     if save_to_mat:
@@ -103,7 +103,7 @@ ax = plt.gca()
 # ax.set_xticks(np.arange(-4, 12.5, 0.5), minor=True)
 ax.grid(which='major', alpha=1)
 ax.grid(which='minor', linestyle="--", alpha=0.5)
-plt.title(f"Threshold = {thresh}")
+# plt.title(f"Threshold = {thresh}")
 # plt.xlim(-3.6, 8)
 # plt.ylim([np.min(list_output) * 0.8, np.max(list_output) * 1.2])  # Set y-axis limits
 plt.yscale('log')
