@@ -158,6 +158,22 @@ def MMSE_func(sigma1, sigma2, n_a, n_q, matrix, snap, monte, thresh_real=0, thre
     MSE = np.nanmean(MSE)
     return MSE
 
+def P_xq(theta,xq,sigma):
+    matrix = Matrix(0, len(xq))
+    theta_0 = theta +1j*theta
+    zeta_real = (math.sqrt(2) / sigma) * ((matrix[1] * theta_0).real)
+    zeta_im = (math.sqrt(2) / sigma) * ((matrix[1] * theta_0).imag)
+
+    cdf_real_pos = norm.cdf(zeta_real)
+    cdf_im_pos = norm.cdf(zeta_im)
+    cdf_real_neg = norm.cdf(-zeta_real)
+    cdf_im_neg = norm.cdf(-zeta_im)
+    term_real_pos = np.prod(np.power(cdf_real_pos, (0.5 + xq.real / math.sqrt(2))), axis=0)
+    term_im_pos = np.prod(np.power(cdf_im_pos, (0.5 + xq.imag / math.sqrt(2))), axis=0)
+    term_real_neg = np.prod(np.power(cdf_real_neg, (0.5 - xq.real / math.sqrt(2))), axis=0)
+    term_im_neg = np.prod(np.power(cdf_im_neg, (0.5 - xq.imag / math.sqrt(2))), axis=0)
+    return term_real_pos * term_im_pos * term_real_neg * term_im_neg
+
 
 def MMSE_func_new(sigma1, sigma2, n_a, n_q, matrix, monte, snap, thresh_real=0, thresh_im=0):
     MSE = np.zeros((monte))
@@ -368,7 +384,7 @@ def WWS(mu, sigma2, s, h, thresh_real=0):
 
 
 ############################################################################################################ Approximation
-def probability(sigma, na, nq, matrix, monte, thresh_real, thresh_im):  #for approximation
+def probability(sigma, na, nq, matrix, monte, thresh_real=0, thresh_im=0):  #for approximation
     prob_vec = np.zeros((monte))
     for i in range(monte):
         real_teta = np.random.normal(mu, sigma_teta, M)
@@ -460,28 +476,41 @@ def J_DP(theta, sigma1, sigma2, na, nq, matrix, thresh_real=0, thresh_im=0):
                 (nq * d[0]) / (2 * sigma2 ** 2)))  #d[0] since G is a block matrix
 
 
+
+def weighted_data_fun(theta, sigma1, sigma2, na, nq, matrix, thresh_real=0, thresh_im=0):
+    zeta_real = (math.sqrt(2) / sigma2) * ((matrix[1] * theta).real - thresh_real)
+    zeta_im = (math.sqrt(2) / sigma2) * ((matrix[1] * theta).imag - thresh_im)
+    d = norm.pdf(zeta_real) ** 2 / (norm.cdf(zeta_real) * (norm.cdf(-zeta_real))) + norm.pdf(zeta_im) ** 2 / (
+            norm.cdf(zeta_im) * (norm.cdf(-zeta_im)))
+    if nq == 0:
+        return 1/((na/(sigma1**2)))  # d[0] since G is a block matrix
+    if na == 0:
+        return 1 / (((nq * d[0]) / (2 * sigma2 ** 2)))
+    else:
+        return 1 / ((na/(sigma1**2))+ ((nq * d[0])/(2 * sigma2 ** 2)))  #d[0] since G is a block matrix
 def weighted_fun(theta, sigma1, sigma2, na, nq, matrix, thresh_real=0, thresh_im=0):
     zeta_real = (math.sqrt(2) / sigma2) * ((matrix[1] * theta).real - thresh_real)
     zeta_im = (math.sqrt(2) / sigma2) * ((matrix[1] * theta).imag - thresh_im)
     d = norm.pdf(zeta_real) ** 2 / (norm.cdf(zeta_real) * (norm.cdf(-zeta_real))) + norm.pdf(zeta_im) ** 2 / (
             norm.cdf(zeta_im) * (norm.cdf(-zeta_im)))
     if nq == 0:
-        return 1 / (abs(theta) ** 2 + (na / sigma1 ** 2))  # d[0] since G is a block matrix
+        return 1/(abs(theta)**2+(na/(sigma1**2)))  # d[0] since G is a block matrix
+    if na == 0:
+        return 1 / (abs(theta)**2 + ((nq * d[0]) / (2 * sigma2 ** 2)))
     else:
-        return 1 / (abs(theta) ** 2 + (na / sigma1 ** 2) + (
-                (nq * d[0]) / (2 * sigma2 ** 2)))  #d[0] since G is a block matrix
+        return 1 / (abs(theta)**2+(na/(sigma1**2))+ ((nq * d[0])/(2 * sigma2 ** 2)))  #d[0] since G is a block matrix
 
 
 def optimized_weighted_BCRB(sigma1, sigma2, n_a, n_q, matrix, monte, thresh_real=0, thresh_im=0):
     theta_org = samp_teta(monte)[0]
-    zeta_real = (np.sqrt(2) / sigma2) * ((matrix[1] @ theta_org).real - thresh_real)
-    zeta_im = (np.sqrt(2) / sigma2) * ((matrix[1] @ theta_org).imag - thresh_im)
+    zeta_real = (np.sqrt(2) / sigma2) * ((matrix[1]*theta_org).real - thresh_real)
+    zeta_im = (np.sqrt(2) / sigma2) * ((matrix[1]*theta_org).imag - thresh_im)
 
     d = norm.pdf(zeta_real) ** 2 / (norm.cdf(zeta_real) * norm.cdf(-zeta_real)) + \
         norm.pdf(zeta_im) ** 2 / (norm.cdf(zeta_im) * norm.cdf(-zeta_im))
 
     weighted_vec = 1 / (np.abs(theta_org) ** 2 + (n_a / sigma1 ** 2) + ((n_q * d) / (2 * sigma2 ** 2)))
-    divv_d = (np.gradient(weighted_vec.real) + 1j * np.gradient(weighted_vec.imag)) / np.gradient(theta_org)
+    divv_d = (np.gradient(weighted_vec.real)) / np.gradient(theta_org) # + 1j * np.gradient(weighted_vec.imag)
 
     s2 = theta_org * weighted_vec * divv_d
     s3 = np.abs(divv_d) ** 2
@@ -489,36 +518,68 @@ def optimized_weighted_BCRB(sigma1, sigma2, n_a, n_q, matrix, monte, thresh_real
     weighted_vec = weighted_vec[~np.isnan(weighted_vec)]
     s2, s3 = s2[~np.isnan(s2)], s3[~np.isnan(s3)]
 
-    return (np.abs(np.mean(weighted_vec)) ** 2 / (np.mean(weighted_vec) + np.mean(s3)) + 2 * np.mean(s2).real).real
+    return (np.abs(np.mean(weighted_vec))**2/(np.mean(weighted_vec) + np.mean(s3) - 2 * np.mean(s2).real)).real
 
-
+def weights_func(sigma1, sigma2, na,nq,matrix, monte, thresh_real=0, thresh_im=0):
+    weighted_vec = np.array([weighted_data_fun(samp_teta(1), sigma1, sigma2, na, nq, matrix, thresh_real, thresh_im) for _ in range(monte)])
+    return np.mean(weighted_vec[~np.isnan(weighted_vec)])
 def weighted_BCRB(sigma1, sigma2, na,nq,matrix, monte, thresh_real=0, thresh_im=0):
     delta = 1e-5
     weighted_vec = np.zeros(monte, dtype=complex)
     J_vec = np.zeros(monte, dtype=complex)
-    s1 = np.zeros(monte, dtype=complex)
     s2 = np.zeros(monte, dtype=complex)
     s3 = np.zeros(monte, dtype=complex)
     theta_org = samp_teta(monte)[0]
     for j in range(monte):  # run over theta
         theta = theta_org[j]
+        # matrix_tilde = Matrix(0,nq)
         weighted_vec[j] = weighted_fun(theta, sigma1, sigma2, na,nq,matrix, thresh_real, thresh_im)
-        weighted_vec_divv = 0.5 * (((weighted_fun(theta + delta, sigma1, sigma2, na,nq,matrix) - weighted_vec[j]) / delta) - 1j * (
+        weighted_vec_divv = 0.5 * (((weighted_fun(theta + delta, sigma1, sigma2, na,nq,matrix,thresh_real,thresh_im) - weighted_vec[j]) / delta) - 1j * (
                                            (weighted_fun(theta + 1j * delta, sigma1,
-                                                         sigma2, na,nq,matrix) - weighted_vec[j]) / delta))
-        # weighted_vec_divv = weighted_fun_div(theta, sigma1, sigma2, n_a, n_q, matrix,thresh_real,thresh_im)
+                                                         sigma2, na,nq,matrix,thresh_real,thresh_im) - weighted_vec[j]) / delta))
+        # weighted_vec_divv = weighted_fun_div(theta, sigma1, sigma2, na, nq, matrix,thresh_real,thresh_im)
         J_vec[j] = J_DP(theta, sigma1, sigma2, na,nq,matrix, thresh_real, thresh_im)
         # fisher_dp = Fisher_dp(theta, sigma1,sigma2, n_a,n_q,matrix,thresh_real,thresh_im)
-        # s1[j] = (np.abs(weighted_vec[j])**2)*fisher_dp
         s2[j] = theta * weighted_vec[j] * weighted_vec_divv
         s3[j] = np.abs(weighted_vec_divv) ** 2  # *(weighted_vec[j]**2)
-    s1, s2, s3 = s1[~np.isnan(s1)], s2[~np.isnan(s2)], s3[~np.isnan(s3)]  # np.nan_to_num(argu, nan=1e-13)
+    s2, s3 = s2[~np.isnan(s2)], s3[~np.isnan(s3)]  # np.nan_to_num(argu, nan=1e-13)
     # s2 = s2[(s2.real > -10) & (s2.real < 10)]
     valid_mask = ~np.isnan(weighted_vec) & ~np.isnan(J_vec)
     weighted_vec = weighted_vec[valid_mask]
     J_vec = J_vec[valid_mask]
-    return (np.abs(np.mean(weighted_vec)) ** 2 / (
-            np.mean(weighted_vec * J_vec * weighted_vec.conjugate())+2*np.mean(s2).real+np.mean(s3))).real
+    # print(f"sigma={sigma1}, s1 = {np.mean(weighted_vec* J_vec * weighted_vec.conjugate())}, s2 = {np.mean(s2).real}, s3 = {np.mean(s3).real}")
+    return (np.abs(np.mean(weighted_vec)) ** 2 /
+            (np.mean(weighted_vec* J_vec * weighted_vec.conjugate())-2*np.mean(s2).real+np.mean(s3))).real
+
+def weighted_new(sigma1, sigma2, na,nq,matrix, monte, thresh_real=0, thresh_im=0):
+    weighted_vec = np.zeros(monte, dtype=complex)
+    s2 = np.zeros(monte, dtype=complex)
+    s3 = np.zeros(monte, dtype=complex)
+    theta_org = samp_teta(monte)[0]
+    for j in range(monte):  # run over theta
+        theta = theta_org[j]
+        a, c = abs(theta)**2, na/sigma1**2+(2*nq)/(math.pi*sigma2**2)
+        weighted_vec[j] = 1/(a+c)
+        s2[j] = 2*a*weighted_vec[j]**3
+        s3[j] = a*weighted_vec[j]**4
+    weighted_vec, s2, s3 = weighted_vec[~np.isnan(weighted_vec)], s2[~np.isnan(s2)], s3[~np.isnan(s3)]  # np.nan_to_num(argu, nan=1e-13)
+    return (np.abs(np.mean(weighted_vec)) ** 2 /
+            (np.mean(weighted_vec)+2*np.mean(s2).real+np.mean(s3))).real
+
+def weighted_analog(sigma1, sigma2, na,nq,matrix, monte, thresh_real=0, thresh_im=0):
+    weighted_vec = np.zeros(monte, dtype=complex)
+    s2 = np.zeros(monte, dtype=complex)
+    s3 = np.zeros(monte, dtype=complex)
+    theta_org = samp_teta(monte)[0]
+    for j in range(monte):  # run over theta
+        theta = theta_org[j]
+        a, c = abs(theta)**2, na/sigma1**2
+        weighted_vec[j] = 1/(a+c)
+        s2[j] = 2*a*weighted_vec[j]**3
+        s3[j] = a*weighted_vec[j]**4
+    weighted_vec, s2, s3 = weighted_vec[~np.isnan(weighted_vec)], s2[~np.isnan(s2)], s3[~np.isnan(s3)]  # np.nan_to_num(argu, nan=1e-13)
+    return (np.abs(np.mean(weighted_vec)) ** 2 /
+            (np.mean(weighted_vec)+2*np.mean(s2).real+np.mean(s3))).real
 
 def weighted_BCRB_partition(sigma1, sigma2, w_n: list, j_n: list, monte, thresh_real=0, thresh_im=0):
     delta = 1e-5

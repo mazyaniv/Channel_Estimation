@@ -7,12 +7,11 @@ import math
 
 bound_sim = 1000
 n_list = np.linspace(10, 100, 12, dtype=int)
-WBCRB = [weighted_BCRB(1, 1, [int(n/2),int(n/2),Matrix(int(n/2),int(n/2))], [int(n/2),int(n/2),Matrix(int(n/2),int(n/2))],bound_sim) for n in n_list]
-WBCRB_quantize = [weighted_BCRB(1, 1, [0,int(n/2),Matrix(0,int(n/2))], [int(n/2),int(n/2),Matrix(int(n/2),int(n/2))],bound_sim) for n in n_list]
-# WBCRB_analog = [weighted_BCRB(1, 1, [int(n/2),0,Matrix(int(n/2),0)], [int(n/2),int(n/2),Matrix(int(n/2),int(n/2))],bound_sim) for n in n_list]
+weights = [weights_func(1, 1, 0,n,Matrix(0,n),500) for n in n_list]
+WBCRB_quantize = [weighted_BCRB(1, 1, 0,n,Matrix(0,n),bound_sim) for n in n_list]
 
-plt.plot(n_list, WBCRB,label='mixed')
-plt.plot(n_list, WBCRB_quantize,label='quantize')
+plt.plot(n_list, weights,label='weights')
+plt.plot(n_list, WBCRB_quantize,label='wbcrb')
 # plt.plot(n_list, WBCRB_analog,label='analog')
 
 ax = plt.gca()
