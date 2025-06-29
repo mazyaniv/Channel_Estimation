@@ -159,7 +159,8 @@ def MMSE_func(sigma1, sigma2, n_a, n_q, matrix, snap, monte, thresh_real=0, thre
     return MSE
 
 def P_xq(theta,xq,sigma):
-    matrix = Matrix(0, len(xq))
+    matrix = list(Matrix(0, len(xq)))
+    matrix[1] = np.ones((M,len(xq)))
     theta_0 = theta +1j*theta
     zeta_real = (math.sqrt(2) / sigma) * ((matrix[1] * theta_0).real)
     zeta_im = (math.sqrt(2) / sigma) * ((matrix[1] * theta_0).imag)
@@ -259,14 +260,13 @@ def CRB(sigma1, sigma2, n_a, n_q, matrix, observ=sim, thresh_real=0, thresh_im=0
     d_vec = np.divide(np.power(pdf_real, 2), np.multiply(norm.cdf(zeta_real), (norm.cdf(-zeta_real)))) + \
             np.divide(np.power(pdf_im, 2), np.multiply(norm.cdf(zeta_im), (norm.cdf(-zeta_im))))
 
-    d = np.nanmean(d_vec, axis=1)  #converges to 0.95 aprox.
-
+    d = np.nanmean(d_vec, axis=1)
     my_vector = [(n_q * rho_q * d[i]) * G_normal[i].reshape(M, 1).conjugate() * G_normal[i].reshape(M, 1).transpose()
                  for i in range(len(d))]
-    J2 = np.sum(my_vector, axis=0) * (1 / (2 * pow(sigma1, 2)))
+    J2 = np.sum(my_vector, axis=0) * (1 / (2 * pow(sigma2, 2)))
     J1 = (1 + (rho_a * n_a / pow(sigma1, 2))) * np.identity(M)
     J = J1 + J2
-    return LA.norm((LA.inv(J)).real, "fro")
+    return LA.norm((LA.inv(J)).real, "fro")#np.squeeze(J2.real)
 
 
 ############################################################################################################
@@ -386,15 +386,15 @@ def WWS(mu, sigma2, s, h, thresh_real=0):
 ############################################################################################################ Approximation
 def probability(sigma, na, nq, matrix, monte, thresh_real=0, thresh_im=0):  #for approximation
     prob_vec = np.zeros((monte))
-    for i in range(monte):
+    for j in range(monte):
         real_teta = np.random.normal(mu, sigma_teta, M)
         im_teta = np.random.normal(mu, sigma_teta, M)
         teta = real_teta + 1j * im_teta
         teta = teta.reshape(M, 1)
         x_observ = x(sigma, sigma, na, nq, matrix, teta, thresh_real, thresh_im)[
             1]  # (sigma1, sigma2, n_a, n_q, matrix, teta, thresh_real, thresh_im)
-        if np.all(x_observ == x_observ[0]):
-            prob_vec[i] = 1
+        if all(np.all(x_observ[i*M:(i+1)*M] == x_observ[:M]) for i in range(nq)):
+            prob_vec[j] = 1
     return np.mean(prob_vec)
 
 

@@ -8,7 +8,7 @@ import random
 
 sigma = np.logspace(-1,1,50)
 thresh_space = np.linspace(-5,5,100)
-M =1
+M = 1
 mu = 0
 sigma_teta = math.sqrt(1)*(1/math.sqrt(2))
 rho_q = 1

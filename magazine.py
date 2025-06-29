@@ -5,20 +5,21 @@ from scipy.io import savemat
 import os
 import math
 
-plot_result = 0
+plot_result = 1
 save_to_mat = 0
 
-chosen_space = np.linspace(-5, 15, 27) #dB
+chosen_space = np.linspace(0, 50, 30) #dB
 sigma_space = 10**(-chosen_space/10)
 list_output = []
-na,nq = 10,0
+na,nq = 0,100
 bound_sim = 10000
-plot_dict = {'LMMSE': 0, 'MMSE': 1 ,'Approx': 0, 'OPT':0,'WBCRB': 0, 'BCRB': 0}
+plot_dict = {'LMMSE': 1, 'MMSE': 0 ,'Approx': 0, 'OPT':0,'WBCRB': 0, 'BCRB': 0}
 matrix_const0 = Matrix(na, 0)
 matrix_const1 = Matrix(na, nq)
 
 if plot_dict['LMMSE'] == 1:
-    LMMSE = [MSE_zertothresh_analytic(sigma_space[i], sigma_space[i], na, nq) for i in range(len(sigma_space))]
+    LMMSE = np.squeeze([MSE_general_numerical(sigma_space[i], sigma_space[i], na, nq,matrix_const1,100000) for i in range(len(sigma_space))])#[MSE_zertothresh_analytic(sigma_space[i], sigma_space[i], na, nq) for i in range(len(sigma_space))]
+    print(f"LMMSE: {LMMSE}")
     list_output.append(LMMSE)
 if plot_dict['MMSE'] == 1:
     MMSE = np.load('MMSE/MMSE,na=1,nq=100,thresh=0,snap=12000,monte=1200.npy')#[MMSE_func(sigma_space[i], sigma_space[i], na, nq, matrix_const1, 6000,500,thresh,thresh) for i in range(len(sigma_space))]
