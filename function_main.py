@@ -58,7 +58,7 @@ def MSE_general_numerical(sigma1, sigma2, n_a, n_q, matrix, snap, thresh_real=0,
     cov_x_inv_down = np.concatenate((-1 * (inv_K @ C @ inv_A), inv_K), axis=1)
     cov_x_inv = np.concatenate((cov_x_inv_up, cov_x_inv_down), axis=0)
     cov_teta_x = np.concatenate((cov_teta_xa, cov_teta_xq), axis=1)
-    return (M - cov_teta_x @ cov_x_inv @ (cov_teta_x.transpose().conjugate())).real
+    return np.squeeze((M - cov_teta_x @ cov_x_inv @ (cov_teta_x.transpose().conjugate())).real)
     # for i in range(snap):
     #     real_teta = np.random.normal(mu, sigma_teta, M)
     #     im_teta = np.random.normal(mu, sigma_teta, M)

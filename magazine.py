@@ -13,7 +13,7 @@ sigma_space = 10**(-chosen_space/10)
 list_output = []
 na,nq = 0,10
 bound_sim = 300
-plot_dict = {'LMMSE': 1, 'MMSE': 1 ,'Approx': 0, 'OPT':0,'WBCRB': 0, 'BCRB': 0}
+plot_dict = {'LMMSE': 1, 'MMSE': 0 ,'Approx': 0, 'OPT':0,'WBCRB': 1, 'BCRB': 1}
 matrix_const0 = Matrix(na, 0)
 matrix_const1 = Matrix(na, nq)
 
