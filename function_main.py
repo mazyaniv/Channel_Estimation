@@ -134,24 +134,11 @@ def MMSE_func(sigma1, sigma2, n_a, n_q, matrix, snap, monte, thresh_real=0, thre
         term_real_neg = np.prod(np.power(cdf_real_neg, (0.5 - x_q.real / math.sqrt(2))), axis=0)
         term_im_neg = np.prod(np.power(cdf_im_neg, (0.5 - x_q.imag / math.sqrt(2))), axis=0)
         p_xq = term_real_pos * term_im_pos * term_real_neg * term_im_neg
-
-        result1 = f_xa * p_xq
+        if n_a != 0:
+            result1 = f_xa * p_xq
+        else:
+            result1 = p_xq
         result2 = theta_vec * result1
-        # for i in range(len(theta_vec)):
-        #     f_xa = (1 / (pow(math.pi, n_a) * pow(sigma1, 2 * n_a))) * math.exp(np.real((-(1 / pow(sigma1, 2)) * (
-        #         np.subtract(x_a, matrix[0] * theta_vec[i])).transpose().conjugate() @ (np.subtract(x_a, matrix[0] *
-        #                                                                                            theta_vec[i])))))
-        #
-        #     zeta_real = (math.sqrt(2) / sigma2) * ((matrix[1] * theta_vec[i]).real - thresh_real)
-        #     zeta_im = (math.sqrt(2) / sigma2) * ((matrix[1] * theta_vec[i]).imag - thresh_im)
-        #
-        #     p_xq = np.prod(np.power(norm.cdf(zeta_real), (0.5 + x_q.real / math.sqrt(2)).reshape(-1, 1))) \
-        #            * np.prod(np.power(norm.cdf(zeta_im), (0.5 + x_q.imag / math.sqrt(2)).reshape(-1, 1))) * np.prod(
-        #         np.power(norm.cdf(-zeta_real), (0.5 - x_q.real / math.sqrt(2)).reshape(-1, 1))) * np.prod(
-        #         np.power(norm.cdf(-zeta_im), (0.5 - x_q.imag / math.sqrt(2)).reshape(-1, 1)))
-        #
-        #     result2[i] = theta_vec[i] * (f_xa * p_xq)
-        #     result1[i] = (f_xa * p_xq)
         teta_hat = np.nanmean(result2) / np.nanmean(result1)
         epsilon = teta_hat - theta_org
         MSE[j] = np.abs(epsilon) ** 2
@@ -251,24 +238,24 @@ def CRB(sigma1, sigma2, n_a, n_q, matrix, observ=sim, thresh_real=0, thresh_im=0
     # if sigma1 <= 0.05:
     #     observ = 10*observ
     teta_samp = samp_teta(observ)
+    # matrix = list(matrix)
+    # matrix[1] = np.ones((n_q*M,M))
     g_teta = matrix[1] @ teta_samp
     G_normal = matrix[1] / math.sqrt(n_q * rho_q)
     zeta_real = ((math.sqrt(2) / sigma2) * (g_teta.real - thresh_real))
     zeta_im = ((math.sqrt(2) / sigma2) * (g_teta.imag - thresh_im))
     pdf_real = norm.pdf(zeta_real)
     pdf_im = norm.pdf(zeta_im)
-    d_vec = np.divide(np.power(pdf_real, 2), np.multiply(norm.cdf(zeta_real), (norm.cdf(-zeta_real)))) + \
-            np.divide(np.power(pdf_im, 2), np.multiply(norm.cdf(zeta_im), (norm.cdf(-zeta_im))))
-
+    d_vec_real = np.divide(np.power(pdf_real, 2), np.multiply(norm.cdf(zeta_real), (norm.cdf(-zeta_real))))
+    d_vec_im = np.divide(np.power(pdf_im, 2), np.multiply(norm.cdf(zeta_im), (norm.cdf(-zeta_im))))
+    d_vec = d_vec_real+d_vec_im
     d = np.nanmean(d_vec, axis=1)
     my_vector = [(n_q * rho_q * d[i]) * G_normal[i].reshape(M, 1).conjugate() * G_normal[i].reshape(M, 1).transpose()
                  for i in range(len(d))]
     J2 = np.sum(my_vector, axis=0) * (1 / (2 * pow(sigma2, 2)))
     J1 = (1 + (rho_a * n_a / pow(sigma1, 2))) * np.identity(M)
     J = J1 + J2
-    return LA.norm((LA.inv(J)).real, "fro")#np.squeeze(J2.real)
-
-
+    return LA.norm((LA.inv(J)).real, "fro") #np.squeeze(J2.real)
 ############################################################################################################
 def BBZ_func(sigma1, sigma2, n_a, n_q, matrix, monte, h=0.0001, thresh_real=0, thresh_im=0):
     monte2 = int(monte)
@@ -485,9 +472,9 @@ def weighted_data_fun(theta, sigma1, sigma2, na, nq, matrix, thresh_real=0, thre
     if nq == 0:
         return 1/((na/(sigma1**2)))  # d[0] since G is a block matrix
     if na == 0:
-        return 1 / (((nq * d[0]) / (2 * sigma2 ** 2)))
+        return 1 / (abs(theta)**2+((nq * d[0])/(2 * sigma2 ** 2)))
     else:
-        return 1 / ((na/(sigma1**2))+ ((nq * d[0])/(2 * sigma2 ** 2)))  #d[0] since G is a block matrix
+        return 1 / ((na/(sigma1**2))+ ((nq*d[0])/(2*sigma2**2)))  #d[0] since G is a block matrix
 def weighted_fun(theta, sigma1, sigma2, na, nq, matrix, thresh_real=0, thresh_im=0):
     zeta_real = (math.sqrt(2) / sigma2) * ((matrix[1] * theta).real - thresh_real)
     zeta_im = (math.sqrt(2) / sigma2) * ((matrix[1] * theta).imag - thresh_im)

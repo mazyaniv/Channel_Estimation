@@ -4,22 +4,20 @@ from scipy.io import savemat
 import os
 import math
 
-lower_segment = np.linspace(-3.5, 2.5, 8)
-upper_segment = np.linspace(2.5, 12.5, 20)
-chosen_space = np.concatenate((lower_segment, upper_segment[1:])) #dB
+chosen_space = np.linspace(-5, 13, 30)
 sigma_space = 10**(-chosen_space/10)
-plot_result = False
+plot_result = True
 if plot_result:
     fig = plt.figure(figsize=(10, 6))
-save_to_mat = True
-save_folder = r'C:\Users\Yaniv\Documents\MATLAB\resource'
+save_to_mat = False
+save_folder = r'C:\Users\Yaniv\Documents\MATLAB\resource2'
 os.makedirs(save_folder, exist_ok=True)
 # file_path = os.path.join(save_folder, 'SNR.mat')
 # savemat(file_path, {'SNR': chosen_space})
 
-resource = [[2,100,'red'],[1,150,'blue']]#,[2,40,'red'],[1,100,'black']]
-bound_sim = int(5e3)
-plot_dict = {'LMMSE': 0, 'MMSE': 1 ,'Approx': 0, 'OPT': 0,'WBCRB': 0, 'CRB': 0}
+resource = [[0,50,'red'],[0,100,'blue']]#,[2,40,'red'],[1,100,'black']]
+bound_sim = 500
+plot_dict = {'LMMSE': 1, 'MMSE': 0 ,'Approx': 0, 'OPT': 0,'WBCRB': 1, 'CRB': 1}
 for na,nq,color in resource:
     list_output = []
     matrix_const0 = Matrix(na, 0)
@@ -45,7 +43,7 @@ for na,nq,color in resource:
         WBCRB = [weighted_BCRB(sigma_space[i], sigma_space[i], na, nq, matrix_const1, bound_sim) for i in range(len(chosen_space))]
         BCRB_a = [CRB(sigma_space[i], sigma_space[i], na,0, matrix_const0, bound_sim) for i in range(len(chosen_space))]
         probability_vec = [probability(sigma_space[i],na,nq, matrix_const1, bound_sim) for i in range(len(chosen_space))]
-        L_App = [probability_vec[i]*BCRB_a[i]+(1-probability_vec[i])*WBCRB[i] for i in range(len(chosen_space))]
+        L_App = [probability_vec[i]*(1-2/math.pi)+(1-probability_vec[i])*WBCRB[i] for i in range(len(chosen_space))]
         list_output.append(L_App)
         # plt.plot(chosen_space, L_App,marker='x', label=f"Approximation")#,$n_a$={na},$n_q$={nq}")
 
@@ -71,20 +69,19 @@ for na,nq,color in resource:
         CRB1 = [CRB(sigma_space[i], sigma_space[i], na, nq, matrix_const1, 2*bound_sim) for i in range(len(chosen_space))]
         list_output.append(CRB1)
     if plot_result:
-        # plt.plot(chosen_space, LMMSE, color=color, linestyle='--', marker="o", label=f"LMMSE") #if plot_dict['LMMSE']=1
-        plt.plot(chosen_space, MMSE, color=color, marker="^", label=f"MMSE")
+        plt.plot(chosen_space, LMMSE, color=color, linestyle='--', marker="o", label=f"LMMSE") #if plot_dict['LMMSE']=1
+        # plt.plot(chosen_space, MMSE, color=color, marker="^", label=f"MMSE")
         # plt.plot(chosen_space, L_App, color=color,marker="v",linestyle='--', label=f"Approximation")
         # plt.plot(chosen_space, OPT, color=color,marker='v', label=f"Opt")
-        # plt.plot(chosen_space, WBCRB, color=color,marker='.', label=f"WBCRB")
-        # plt.plot(chosen_space, CRB1,color=color, label=f"BCRB")
+        plt.plot(chosen_space, WBCRB, color=color,marker='.', label=f"WBCRB")
+        plt.plot(chosen_space, CRB1,color=color, label=f"BCRB,$n_a$={na} $n_q$={nq}")
     if save_to_mat:
         key_list = [key for key, value in plot_dict.items() if value == 1]
-        os.makedirs(save_folder, exist_ok=True)
         file_path = os.path.join(save_folder, 'SNR.mat')
         savemat(file_path, {"SNR": chosen_space})
         for i in range(len(key_list)):
-            file_path = os.path.join(save_folder, key_list[i] +f"{na}{nq}"+'.mat')
-            savemat(file_path, {key_list[i]+f"{na}{nq}": list_output[i]})
+            file_path = os.path.join(save_folder, key_list[i] +f"{nq}"+'.mat')
+            savemat(file_path, {key_list[i]+f"{nq}": list_output[i]})
     # if plot_dict['BBZ'] == 1:
     #     BBZ = np.load(f'Bounds_Mixed/BBZ,na={na},nq={nq},sim=1000.npy')
     #     plt.plot(10 * np.log10(1 / sigma_space), np.real(BBZ),color='purple',marker=".",  label="BBZ")
@@ -97,7 +94,7 @@ if plot_result:
     ax.set_xticks(np.arange(-4, 12.5, 0.5), minor=True)
     ax.grid(which='major', alpha=1)
     ax.grid(which='minor', linestyle="--", alpha=0.5)
-    plt.title(f"Estimators and Bounds")
+    # plt.title(f"Estimators and Bounds")
     # plt.xlim(-3.6, 8)
     # plt.ylim([np.min(list_output) * 0.8, np.max(list_output) * 1.2])  # Set y-axis limits
     plt.yscale('log')
