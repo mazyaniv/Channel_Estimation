@@ -13,10 +13,10 @@ list_output = []
 na,nq = 1,100
 bound_sim = 1000
 thresh = 2.5
-plot_dict = {'LMMSE': 1, 'MMSE': 0 ,'Approx': 0 ,'WBCRB': 1, 'CRB': 1}
-
 matrix_const0 = Matrix(na, 0)
 matrix_const1 = Matrix(na, nq)
+plot_dict = {'LMMSE': 1, 'MMSE': 0 ,'Approx': 1, 'OPT':1,'WBCRB': 1, 'BCRB': 1}
+
 if plot_dict['LMMSE'] == 1:
     if thresh == 0:
         LMMSE = [MSE_zertothresh_analytic(sigma_space[i], sigma_space[i], na, nq) for i in range(len(sigma_space))]
@@ -32,6 +32,9 @@ if plot_dict['Approx'] == 1:
     probability_vec = [probability(sigma_space[i],na,nq, matrix_const1, bound_sim,thresh,thresh) for i in range(len(chosen_space))]
     L_App = [probability_vec[i]*BCRB_a[i]+(1-probability_vec[i])*WBCRB[i] for i in range(len(chosen_space))]
     list_output.append(L_App)
+if plot_dict['OPT'] == 1:
+    OPT = [weights_func(sigma_space[i], sigma_space[i], na, nq, matrix_const1,bound_sim,thresh,thresh) for i in range(len(chosen_space))]
+    list_output.append(OPT)
 if plot_dict['WBCRB'] == 1:
     if plot_dict['Approx'] == 0:
         WBCRB = [weighted_BCRB(sigma_space[i], sigma_space[i], na, nq, matrix_const1,bound_sim,thresh,thresh) for i in range(len(chosen_space))]
@@ -47,6 +50,7 @@ if plot_result:
     if plot_dict['LMMSE']: plots['LMMSE'] = ('--', "o", LMMSE)
     if plot_dict['MMSE']: plots['MMSE'] = (None, "^", MMSE)
     if plot_dict['Approx']: plots['L_App'] = ('--', "v", L_App)
+    if plot_dict['OPT']: plots['OPT'] = ('--', "s", OPT)
     if plot_dict['WBCRB']: plots['WBCRB'] = (None, ".", WBCRB)
     if plot_dict['CRB']: plots['CRB1'] = (None, None, CRB1)
     for key, (linestyle, marker, data) in plots.items():
@@ -65,8 +69,8 @@ if save_to_mat:
     key_list = [key for key, value in plot_dict.items() if value == 1]
     save_folder = r'C:\Users\Yaniv\Documents\MATLAB\thresh2.5'
     os.makedirs(save_folder, exist_ok=True)
-    file_path = os.path.join(save_folder, 'SNR_thresh.mat')
-    savemat(file_path, {"SNR_thresh": chosen_space})
+    # file_path = os.path.join(save_folder, 'SNR_thresh.mat')
+    # savemat(file_path, {"SNR_thresh": chosen_space})
     for i in range(len(key_list)):
         savemat(os.path.join(save_folder, key_list[i]+'_thresh.mat'), {key_list[i]+'_thresh': list_output[i]})
 

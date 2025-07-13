@@ -12,9 +12,9 @@ if plot_result:
 
 thresh_space = np.linspace(0, 2.5, 20)
 sigma = 0.5
-bound_sim = 800
+bound_sim = 100
 resource = [[1,100,'red'],[2,50,'blue']]
-plot_dict = {'LMMSE': 1, 'MMSE': 0 ,'Approx': 0, 'OPT':0,'WBCRB': 1, 'BCRB': 1}
+plot_dict = {'LMMSE': 1, 'MMSE': 0 ,'Approx': 0, 'OPT':1,'WBCRB': 1, 'BCRB': 1}
 for na,nq,color in resource:
     list_output = []
     matrix_const0 = Matrix(na, 0)
@@ -37,7 +37,7 @@ for na,nq,color in resource:
             L_App = [probability_vec[i] * (1-2/math.pi) + (1 - probability_vec[i]) * WBCRB[i] for i in range(len(thresh_space))]
         list_output.append(L_App)
     if plot_dict['OPT'] == 1:
-        OPT = [weights_func(sigma, sigma, na, nq, matrix_const1,bound_sim,thresh_space[i],thresh_space[i]) for i in range(len(thresh_space))]
+        OPT = [optimized_weighted_BCRB(sigma, sigma, na, nq, matrix_const1,100,2,thresh_space[i],thresh_space[i]) for i in range(len(thresh_space))]
         list_output.append(OPT)
     if plot_dict['WBCRB'] == 1:
         if plot_dict['Approx'] == 0:

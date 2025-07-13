@@ -8,12 +8,12 @@ import math
 plot_result = 1
 save_to_mat = 0
 
-chosen_space = np.linspace(-5, 15, 30) #dB
+chosen_space = np.linspace(-5, 15, 27) #dB
 sigma_space = 10**(-chosen_space/10)
 list_output = []
-na,nq = 0,10
-bound_sim = 300
-plot_dict = {'LMMSE': 1, 'MMSE': 0 ,'Approx': 0, 'OPT':0,'WBCRB': 1, 'BCRB': 1}
+na,nq = 1,100
+bound_sim = 1500
+plot_dict = {'LMMSE': 0, 'MMSE': 0 ,'Approx': 0, 'OPT':1,'WBCRB': 0, 'BCRB': 0}
 matrix_const0 = Matrix(na, 0)
 matrix_const1 = Matrix(na, nq)
 
@@ -68,8 +68,8 @@ if save_to_mat:
     key_list = [key for key, value in plot_dict.items() if value == 1]
     save_folder = r'C:\Users\Yaniv\Documents\MATLAB'
     os.makedirs(save_folder, exist_ok=True)
-    file_path = os.path.join(save_folder, 'SNR.mat')
-    savemat(file_path, {"SNR": chosen_space})
+    # file_path = os.path.join(save_folder, 'SNR.mat')
+    # savemat(file_path, {"SNR": chosen_space})
     for i in range(len(key_list)):
         savemat(os.path.join(save_folder, key_list[i]+'.mat'), {key_list[i]: list_output[i]})
 

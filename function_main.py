@@ -488,24 +488,26 @@ def weighted_fun(theta, sigma1, sigma2, na, nq, matrix, thresh_real=0, thresh_im
         return 1 / (abs(theta)**2+(na/(sigma1**2))+ ((nq * d[0])/(2 * sigma2 ** 2)))  #d[0] since G is a block matrix
 
 
-def optimized_weighted_BCRB(sigma1, sigma2, n_a, n_q, matrix, monte, thresh_real=0, thresh_im=0):
-    theta_org = samp_teta(monte)[0]
-    zeta_real = (np.sqrt(2) / sigma2) * ((matrix[1]*theta_org).real - thresh_real)
-    zeta_im = (np.sqrt(2) / sigma2) * ((matrix[1]*theta_org).imag - thresh_im)
+def optimized_weighted_BCRB(sigma1, sigma2, n_a, n_q, matrix, monte,delta, thresh_real=0, thresh_im=0):
+    K = np.zeros((monte, monte))
+    for m in range(monte):
+        K[m, m] = 1
+        if m < monte - 1:
+            K[m + 1, m] = -1
+    K = (1/delta)*K
+    upsilon = np.linspace(-delta/2, delta/2, monte)
+    # upsilon = samp_teta(monte)[0]
+    f = delta*(1 / (math.pi)) * np.exp(-upsilon)#-np.abs(upsilon) ** 2
+    F = np.diag(f)
+    Psi = -(F@K@K+(F@K@K).T+K.T@F@K)
 
+    zeta_real = (np.sqrt(2) / sigma2) * ((matrix[1]*upsilon).real - thresh_real)[0,:]
+    zeta_im = (np.sqrt(2) / sigma2) * ((matrix[1]*upsilon).imag - thresh_im)[0,:]
     d = norm.pdf(zeta_real) ** 2 / (norm.cdf(zeta_real) * norm.cdf(-zeta_real)) + \
         norm.pdf(zeta_im) ** 2 / (norm.cdf(zeta_im) * norm.cdf(-zeta_im))
-
-    weighted_vec = 1 / (np.abs(theta_org) ** 2 + (n_a / sigma1 ** 2) + ((n_q * d) / (2 * sigma2 ** 2)))
-    divv_d = (np.gradient(weighted_vec.real)) / np.gradient(theta_org) # + 1j * np.gradient(weighted_vec.imag)
-
-    s2 = theta_org * weighted_vec * divv_d
-    s3 = np.abs(divv_d) ** 2
-
-    weighted_vec = weighted_vec[~np.isnan(weighted_vec)]
-    s2, s3 = s2[~np.isnan(s2)], s3[~np.isnan(s3)]
-
-    return (np.abs(np.mean(weighted_vec))**2/(np.mean(weighted_vec) + np.mean(s3) - 2 * np.mean(s2).real)).real
+    J_ = np.abs(upsilon) ** 2 + np.abs(upsilon) ** 2 + (n_a / sigma1 ** 2) + ((n_q*rho_q*d)/(2 * sigma2 ** 2))
+    Z = np.diag(J_)
+    return (1/monte)*f.T@LA.inv((Z@F+Psi))@f
 
 def weights_func(sigma1, sigma2, na,nq,matrix, monte, thresh_real=0, thresh_im=0):
     weighted_vec = np.array([weighted_data_fun(samp_teta(1), sigma1, sigma2, na, nq, matrix, thresh_real, thresh_im) for _ in range(monte)])
