@@ -7,15 +7,15 @@ import math
 
 chosen_space = np.linspace(-7.5, 5, 20) #dB
 sigma_space = 10**(-chosen_space/10)
-plot_result = 1
-save_to_mat = 0
+plot_result = 0
+save_to_mat = 1
 list_output = []
 na,nq = 1,100
 bound_sim = 1000
-thresh = 2.5
+thresh = 2
 matrix_const0 = Matrix(na, 0)
 matrix_const1 = Matrix(na, nq)
-plot_dict = {'LMMSE': 1, 'MMSE': 0 ,'Approx': 1, 'OPT':1,'WBCRB': 1, 'BCRB': 1}
+plot_dict = {'LMMSE': 0, 'MMSE': 0 ,'Approx': 0, 'OPT':1,'WBCRB': 0, 'BCRB': 0}
 
 if plot_dict['LMMSE'] == 1:
     if thresh == 0:
@@ -37,12 +37,12 @@ if plot_dict['OPT'] == 1:
     list_output.append(OPT)
 if plot_dict['WBCRB'] == 1:
     if plot_dict['Approx'] == 0:
-        WBCRB = [weighted_BCRB(sigma_space[i], sigma_space[i], na, nq, matrix_const1,bound_sim,thresh,thresh) for i in range(len(chosen_space))]
+        WBCRB = [weights_func(sigma_space[i], sigma_space[i], na, nq, matrix_const1,bound_sim,thresh,thresh) for i in range(len(chosen_space))]
     list_output.append(WBCRB)
 
-if plot_dict['CRB'] == 1:
-    CRB1 = [CRB(sigma_space[i], sigma_space[i], na, nq, matrix_const1, 10000,thresh,thresh) for i in range(len(chosen_space))]
-    list_output.append(CRB1)
+if plot_dict['BCRB'] == 1:
+    BCRB = [CRB(sigma_space[i], sigma_space[i], na, nq, matrix_const1, 10000,thresh,thresh) for i in range(len(chosen_space))]
+    list_output.append(BCRB)
 
 if plot_result:
     fig = plt.figure(figsize=(10, 6))
@@ -52,7 +52,7 @@ if plot_result:
     if plot_dict['Approx']: plots['L_App'] = ('--', "v", L_App)
     if plot_dict['OPT']: plots['OPT'] = ('--', "s", OPT)
     if plot_dict['WBCRB']: plots['WBCRB'] = (None, ".", WBCRB)
-    if plot_dict['CRB']: plots['CRB1'] = (None, None, CRB1)
+    if plot_dict['BCRB']: plots['BCRB'] = (None, None, BCRB)
     for key, (linestyle, marker, data) in plots.items():
         if key in locals():
             plt.plot(chosen_space, data, linestyle=linestyle, marker=marker, label=key)

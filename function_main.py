@@ -464,7 +464,7 @@ def J_DP(theta, sigma1, sigma2, na, nq, matrix, thresh_real=0, thresh_im=0):
 
 
 
-def weighted_data_fun(theta, sigma1, sigma2, na, nq, matrix, thresh_real=0, thresh_im=0):
+def weighted_data_fun(theta, sigma1, sigma2, na, nq, matrix, thresh_real, thresh_im):
     zeta_real = (math.sqrt(2) / sigma2) * ((matrix[1] * theta).real - thresh_real)
     zeta_im = (math.sqrt(2) / sigma2) * ((matrix[1] * theta).imag - thresh_im)
     d = norm.pdf(zeta_real) ** 2 / (norm.cdf(zeta_real) * (norm.cdf(-zeta_real))) + norm.pdf(zeta_im) ** 2 / (
