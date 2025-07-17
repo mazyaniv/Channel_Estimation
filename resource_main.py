@@ -7,7 +7,7 @@ import math
 chosen_space = np.linspace(-5, 13, 30)
 sigma_space = 10**(-chosen_space/10)
 bound_sim = 500
-plot_dict = {'LMMSE': 1, 'MMSE': 0 ,'Approx': 1, 'OPT': 0,'WBCRB': 0, 'CRB': 0}
+plot_dict = {'LMMSE': 1, 'MMSE': 0 ,'Approx': 0, 'OPT': 0,'WBCRB': 0, 'BCRB': 1}
 resource = [[0,100,'red'],[0,50,'blue']]#,[2,40,'red'],[1,100,'black']]
 
 plot_result = True
@@ -64,9 +64,9 @@ for na,nq,color in resource:
         # WBCRB1 = np.delete(np.load(f'Bounds_Mixed/WBCRB,na={na},nq={nq},sim=1000.npy'),[3,5,7])
         # plt.plot(10 * np.log10(1 / np.delete(sigma_space2, [3,5,7])), WBCRB1,color='purple',marker="o",linestyle=':', label="WBCRB_old")
 
-    if plot_dict['CRB'] == 1:
-        CRB1 = [CRB(sigma_space[i], sigma_space[i], na, nq, matrix_const1, 2*bound_sim) for i in range(len(chosen_space))]
-        list_output.append(CRB1)
+    if plot_dict['BCRB'] == 1:
+        BCRB = [CRB(sigma_space[i], sigma_space[i], na, nq, matrix_const1, 2*bound_sim) for i in range(len(chosen_space))]
+        list_output.append(BCRB)
     if plot_result:
         plots = {}
         if plot_dict['LMMSE']: plots["LMMSE"] = ('--', "o", LMMSE)
@@ -74,12 +74,13 @@ for na,nq,color in resource:
         if plot_dict['Approx']: plots['L_App'] = ('--', "v", L_App)
         if plot_dict['OPT']: plots['OPT'] = ('--', "s", OPT)
         if plot_dict['WBCRB']: plots['WBCRB'] = (None, ".", WBCRB)
-        if plot_dict['CRB']: plots['BCRB'] = (None, None, CRB1)
+        if plot_dict['BCRB']: plots['BCRB'] = (None, None, BCRB)
         for key, (linestyle, marker, data) in plots.items():
             if key in locals():
                 plt.plot(chosen_space, data, linestyle=linestyle, marker=marker,
                          label=key + f" $n_a$={na},$n_q$={nq}", color=color)
 ax = plt.gca()
+ax.grid(which='major', alpha=1)
 ax.grid(which='major', alpha=1)
 ax.grid(which='minor', linestyle="--", alpha=0.5)
 plt.yscale('log')

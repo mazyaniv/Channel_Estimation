@@ -5,17 +5,17 @@ from scipy.io import savemat
 import os
 import math
 
-chosen_space = np.linspace(-7.5, 5, 20) #dB
+chosen_space = np.linspace(-7.5, 5, 27) #dB
 sigma_space = 10**(-chosen_space/10)
 plot_result = 0
 save_to_mat = 1
 list_output = []
 na,nq = 1,100
-bound_sim = 1000
+bound_sim = 10
 thresh = 2
 matrix_const0 = Matrix(na, 0)
 matrix_const1 = Matrix(na, nq)
-plot_dict = {'LMMSE': 0, 'MMSE': 0 ,'Approx': 0, 'OPT':1,'WBCRB': 0, 'BCRB': 0}
+plot_dict = {'LMMSE': 1, 'MMSE': 0 ,'Approx': 1, 'OPT':1,'WBCRB': 1, 'BCRB': 1}
 
 if plot_dict['LMMSE'] == 1:
     if thresh == 0:
@@ -67,11 +67,11 @@ if plot_result:
     plt.show()
 if save_to_mat:
     key_list = [key for key, value in plot_dict.items() if value == 1]
-    save_folder = r'C:\Users\Yaniv\Documents\MATLAB\thresh2.5'
+    save_folder = r'C:\Users\Yaniv\Documents\MATLAB\tau=2'
     os.makedirs(save_folder, exist_ok=True)
     # file_path = os.path.join(save_folder, 'SNR_thresh.mat')
     # savemat(file_path, {"SNR_thresh": chosen_space})
     for i in range(len(key_list)):
-        savemat(os.path.join(save_folder, key_list[i]+'_thresh.mat'), {key_list[i]+'_thresh': list_output[i]})
+        savemat(os.path.join(save_folder, key_list[i]+'_tau2.mat'), {key_list[i]+'_tau2': list_output[i]})
 
 
