@@ -6,17 +6,18 @@ import math
 
 chosen_space = np.linspace(-5, 13, 30)
 sigma_space = 10**(-chosen_space/10)
-bound_sim = 500
-plot_dict = {'LMMSE': 1, 'MMSE': 1 ,'Approx': 0, 'OPT': 0,'WBCRB': 0, 'BCRB': 1}
-resource = [[0,40,'red']]#],[0,40,'blue']]#,[2,40,'red'],[1,100,'black']]
+bound_sim = 3000
+plot_dict = {'LMMSE': 0, 'MMSE': 0 ,'Approx': 0, 'OPT': 1,'WBCRB': 1, 'BCRB': 1}
+resource = [[0,20,'red'],[0,40,'blue']]#,[2,40,'red'],[1,100,'black']]
 plot_result = 1
 save_to_mat = 0
-
+if plot_result:
+    save_folder = r'C:\Users\Yaniv\Documents\MATLAB\one_bit'
+    os.makedirs(save_folder, exist_ok=True)
+    file_path = os.path.join(save_folder, 'SNR.mat')
+    savemat(file_path, {"SNR": chosen_space})
 if plot_result:
     fig = plt.figure(figsize=(10, 6))
-save_folder = r'C:\Users\Yaniv\Documents\MATLAB\resource2'
-os.makedirs(save_folder, exist_ok=True)
-
 for na,nq,color in resource:
     list_output = []
     matrix_const0 = Matrix(na, 0)
@@ -42,17 +43,9 @@ for na,nq,color in resource:
         L_App = [probability_vec[i]*(1-2/math.pi)+(1-probability_vec[i])*WBCRB[i] for i in range(len(chosen_space))]
         list_output.append(L_App)
         # plt.plot(chosen_space, L_App,marker='x', label=f"Approximation")#,$n_a$={na},$n_q$={nq}")
-
     if plot_dict['OPT'] == 1:
-        OPT = [ET_CRB(sigma_space[i], sigma_space[i], na, nq, bound_sim) for i in range(len(chosen_space))]
-        OPT[0], OPT[1] = LMMSE[0], LMMSE[1]
-        for i in range(len(chosen_space)):
-            if math.isnan(OPT[i]):
-                OPT[i] = WBCRB[i]
+        OPT = [weights_func(sigma_space[i], sigma_space[i], na, nq, matrix_const1, bound_sim) for i in range(len(chosen_space))]
         list_output.append(OPT)
-        # plt.plot(chosen_space, OPT,marker='v', label=f"Opt")#,$n_a$={na},$n_q$={nq}")
-        # WBCRB1 = np.delete(np.load(f'Bounds_Mixed/WBCRB,na={na},nq={nq},sim=1000.npy'),[3,5,7])
-        # plt.plot(10 * np.log10(1 / np.delete(sigma_space2, [3,5,7])), WBCRB1,color='purple',marker="o",linestyle=':', label="WBCRB_old")
     if plot_dict['WBCRB'] == 1:
         if plot_dict['Approx'] == 0:
             WBCRB = [weighted_BCRB(sigma_space[i], sigma_space[i], na, nq, matrix_const1,bound_sim) for i in range(len(chosen_space))]
@@ -60,7 +53,6 @@ for na,nq,color in resource:
         # plt.plot(chosen_space, WBCRB,marker='.', label=f"WBCRB")#,$n_a$={na},$n_q$={nq}")
         # WBCRB1 = np.delete(np.load(f'Bounds_Mixed/WBCRB,na={na},nq={nq},sim=1000.npy'),[3,5,7])
         # plt.plot(10 * np.log10(1 / np.delete(sigma_space2, [3,5,7])), WBCRB1,color='purple',marker="o",linestyle=':', label="WBCRB_old")
-
     if plot_dict['BCRB'] == 1:
         BCRB = [CRB(sigma_space[i], sigma_space[i], na, nq, matrix_const1, 2*bound_sim) for i in range(len(chosen_space))]
         list_output.append(BCRB)
@@ -76,6 +68,10 @@ for na,nq,color in resource:
             if key in locals():
                 plt.plot(chosen_space, data, linestyle=linestyle, marker=marker,
                          label=key + f" $n_a$={na},$n_q$={nq}", color=color)
+        if save_to_mat:
+            key_list = [key for key, value in plot_dict.items() if value == 1]
+            for i in range(len(key_list)):
+                savemat(os.path.join(save_folder, key_list[i] + f'{nq}.mat'), {key_list[i]+ f'{nq}': list_output[i]})
 ax = plt.gca()
 ax.grid(which='major', alpha=1)
 ax.grid(which='major', alpha=1)
