@@ -35,10 +35,10 @@ sigma_space = 10**(-chosen_space/10)
 # theta_range = np.linspace(-3,3, 100)
 na, nq = 0,100
 matrix = Matrix(0, nq)
-Jq = [J_q(sigma_space[i], sigma_space[i], na, nq, matrix, 50) for i in range(len(chosen_space))]
-BCRB = [CRB(sigma_space[i], sigma_space[i], na, nq, matrix, 1000) for i in range(len(chosen_space))]
+# Jq = [J_q(sigma_space[i], sigma_space[i], na, nq, matrix, 50) for i in range(len(chosen_space))]
+# BCRB = [CRB(sigma_space[i], sigma_space[i], na, nq, matrix, 1000) for i in range(len(chosen_space))]
 # P = [P_xq(theta_range[i], -(np.ones(nq)+1j*np.ones(nq))/math.sqrt(2),0.05) for i in range(len(theta_range))]
-# probability_vec = [probability(sigma_space[i],na,nq, matrix, 700) for i in range(len(chosen_space))]
+probability_vec = [probability(sigma_space[i],na,nq, matrix, 700) for i in range(len(chosen_space))]
 # area = simps(P, theta_range)
 # print(f"Area under the curve: {area}")
 
