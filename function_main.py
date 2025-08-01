@@ -384,6 +384,14 @@ def probability(sigma, na, nq, matrix, monte, thresh_real=0, thresh_im=0):  #for
             prob_vec[j] = 1
     return np.mean(prob_vec)
 
+def probability_new(sigma, na, nq, matrix, monte,observ, thresh_real=0, thresh_im=0):  #for approximation
+    prob_vec = np.zeros((monte))
+    for j in range(monte):
+        x_observ = samp2(sigma, sigma, na, nq, matrix, observ, thresh_real, thresh_im)[1]  # (sigma1, sigma2, n_a, n_q, matrix, teta, thresh_real, thresh_im)
+        if np.all(x_observ == x_observ[:, [0]], axis=1).all():
+            prob_vec[j] = 1
+    return np.mean(prob_vec)
+
 
 def LMMSE_numerical_ONEBIT(sigma1, sigma2, n_a, n_q, matrix, observ, snap=1000, thresh_real=0, thresh_im=0):
     cov = np.zeros((observ, M, M))

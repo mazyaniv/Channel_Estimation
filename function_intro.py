@@ -92,6 +92,28 @@ def samp(sigma1,sigma2, n_a,n_q, matrix, observ,thresh_real=0,thresh_im=0): #sam
     x_q_samp = (1/math.sqrt(2))*(np.sign(y_samp.real-(thresh_real))+(1j*(np.sign(y_samp.imag-((thresh_im))))))
     return x_a_samp, x_q_samp, teta_samp
 
+def samp2(sigma1,sigma2, n_a,n_q, matrix, observ,thresh_real=0,thresh_im=0): #samples
+    real_teta_samp = np.random.normal(mu, sigma_teta, (M, 1))
+    im_teta_samp = np.random.normal(mu, sigma_teta, (M, 1))
+    teta_samp = real_teta_samp + 1j * im_teta_samp
+    teta_samp = np.tile(teta_samp, (1, observ))  # replicate across columns
+
+    sigma_w_a_samp = sigma1 * (1 / math.sqrt(2))
+    real_w_a_samp = np.random.normal(mu, sigma_w_a_samp, (M*n_a,observ))
+    im_w_a_samp = np.random.normal(mu, sigma_w_a_samp, (M*n_a,observ))
+    w_a_samp = (real_w_a_samp + 1j * im_w_a_samp)
+
+    sigma_w_q_samp = sigma2* (1 / math.sqrt(2))
+    real_w_q_samp = np.random.normal(mu, sigma_w_q_samp,(M*n_q,observ))
+    im_w_q_samp = np.random.normal(mu, sigma_w_q_samp,(M*n_q,observ))
+    w_q_samp = (real_w_q_samp + 1j * im_w_q_samp)
+
+    x_a_samp = (matrix[0]@teta_samp)+w_a_samp
+    y_samp = (matrix[1]@teta_samp) + w_q_samp
+
+    x_q_samp = (1/math.sqrt(2))*(np.sign(y_samp.real-(thresh_real))+(1j*(np.sign(y_samp.imag-((thresh_im))))))
+    return x_a_samp, x_q_samp, teta_samp
+
 def samp_teta(observ):
     real_teta_samp = np.random.normal(mu, sigma_teta, (M, observ))
     im_teta_samp = np.random.normal(mu, sigma_teta, (M, observ))

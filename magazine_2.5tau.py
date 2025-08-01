@@ -8,10 +8,10 @@ import math
 chosen_space = np.linspace(-7.5, 5, 20) #dB
 sigma_space = 10**(-chosen_space/10)
 plot_result = 1
-save_to_mat = 1
+save_to_mat = 0
 list_output = []
 na,nq = 1,100
-bound_sim = 2000
+bound_sim = 500
 thresh = 2
 matrix_const0 = Matrix(na, 0)
 matrix_const1 = Matrix(na, nq)
@@ -26,7 +26,7 @@ if plot_dict['MMSE'] == 1:
 if plot_dict['Approx'] == 1:
     WBCRB = [weighted_BCRB(sigma_space[i], sigma_space[i], na, nq, matrix_const1,bound_sim,thresh,thresh) for i in range(len(chosen_space))]
     BCRB_a = [CRB(sigma_space[i], sigma_space[i], na, 0, matrix_const0,bound_sim,thresh,thresh) for i in range(len(chosen_space))]
-    probability_vec = [probability(sigma_space[i],na,nq, matrix_const1, bound_sim,thresh,thresh) for i in range(len(chosen_space))]
+    probability_vec = [probability_new(sigma_space[i],na,nq, matrix_const1, bound_sim,20,thresh,thresh) for i in range(len(chosen_space))]
     L_App = [probability_vec[i]*BCRB_a[i]+(1-probability_vec[i])*WBCRB[i] for i in range(len(chosen_space))]
     list_output.append(L_App)
 if plot_dict['OPT'] == 1:
