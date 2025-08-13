@@ -7,7 +7,7 @@ import math
 chosen_space = np.linspace(-5, 13, 30)
 sigma_space = 10**(-chosen_space/10)
 bound_sim = 3000
-plot_dict = {'LMMSE': 0, 'MMSE': 0 ,'Approx': 0, 'OPT': 1,'WBCRB': 1, 'BCRB': 1}
+plot_dict = {'LMMSE': 1, 'MMSE': 1 ,'Approx': 1, 'OPT': 1,'WBCRB': 1, 'BCRB': 1}
 resource = [[0,20,'red'],[0,40,'blue']]#,[2,40,'red'],[1,100,'black']]
 plot_result = 1
 save_to_mat = 0
@@ -39,7 +39,7 @@ for na,nq,color in resource:
     if plot_dict['Approx'] == 1:
         WBCRB = [weighted_BCRB(sigma_space[i], sigma_space[i], na, nq, matrix_const1, bound_sim) for i in range(len(chosen_space))]
         BCRB_a = [CRB(sigma_space[i], sigma_space[i], na,0, matrix_const0, bound_sim) for i in range(len(chosen_space))]
-        probability_vec = [probability(sigma_space[i],na,nq, matrix_const1, bound_sim) for i in range(len(chosen_space))]
+        probability_vec = [probability_new(sigma_space[i],na,nq, matrix_const1, bound_sim,20) for i in range(len(chosen_space))]
         L_App = [probability_vec[i]*(1-2/math.pi)+(1-probability_vec[i])*WBCRB[i] for i in range(len(chosen_space))]
         list_output.append(L_App)
         # plt.plot(chosen_space, L_App,marker='x', label=f"Approximation")#,$n_a$={na},$n_q$={nq}")

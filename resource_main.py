@@ -6,11 +6,11 @@ import math
 
 chosen_space = np.linspace(-3.5, 12.5, 27)
 sigma_space = 10**(-chosen_space/10)
-bound_sim = 3000
-plot_dict = {'LMMSE': 0, 'MMSE': 0 ,'Approx': 1, 'OPT': 0,'WBCRB': 0, 'BCRB': 0}
+bound_sim = 500
+plot_dict = {'LMMSE': 0, 'MMSE': 1 ,'Approx': 1, 'OPT': 0,'WBCRB': 0, 'BCRB': 0}
 resource = [[1,150,'red'],[2,100,'blue']]#,[2,40,'red'],[1,100,'black']]
-plot_result = 0
-save_to_mat = 1
+plot_result = 1
+save_to_mat = 0
 if save_to_mat:
     save_folder = r'C:\Users\Yaniv\Documents\MATLAB\resource'
     os.makedirs(save_folder, exist_ok=True)
@@ -38,7 +38,7 @@ for na,nq,color in resource:
     if plot_dict['Approx'] == 1:
         WBCRB = [weighted_BCRB(sigma_space[i], sigma_space[i], na, nq, matrix_const1, bound_sim) for i in range(len(chosen_space))]
         BCRB_a = [CRB(sigma_space[i], sigma_space[i], na,0, matrix_const0, bound_sim) for i in range(len(chosen_space))]
-        probability_vec = [probability(sigma_space[i],na,nq, matrix_const1, bound_sim) for i in range(len(chosen_space))]
+        probability_vec = [probability_new(sigma_space[i],na,nq, matrix_const1, bound_sim,20) for i in range(len(chosen_space))]
         L_App = [probability_vec[i]*BCRB_a[i]+(1-probability_vec[i])*WBCRB[i] for i in range(len(chosen_space))]
         list_output.append(L_App)
         # plt.plot(chosen_space, L_App,marker='x', label=f"Approximation")#,$n_a$={na},$n_q$={nq}")

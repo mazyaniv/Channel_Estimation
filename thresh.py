@@ -9,9 +9,9 @@ plot_result = 1
 save_to_mat = 0
 thresh_space = np.linspace(0, 2.5, 20)
 sigma = 0.5
-bound_sim = 1000
+bound_sim = 500
 resource = [[1,100]]
-plot_dict = {'LMMSE': 0, 'MMSE': 1 ,'Approx': 0, 'OPT':0,'WBCRB': 0, 'BCRB': 0}
+plot_dict = {'LMMSE': 1, 'MMSE': 1 ,'Approx': 1, 'OPT':1,'WBCRB': 1, 'BCRB': 1}
 for na,nq in resource:
     list_output = []
     matrix_const0 = Matrix(na, 0)
@@ -39,7 +39,7 @@ for na,nq in resource:
         list_output.append(OPT)
     if plot_dict['WBCRB'] == 1:
         if plot_dict['Approx'] == 0:
-            WBCRB = [weighted_BCRB(sigma, sigma, na, nq, matrix_const1,bound_sim,thresh_space[i],thresh_space[i]) for i in range(len(thresh_space))]
+                WBCRB = [weighted_BCRB(sigma, sigma, na, nq, matrix_const1,bound_sim,thresh_space[i],thresh_space[i]) for i in range(len(thresh_space))]
         list_output.append(WBCRB)
     if plot_dict['BCRB'] == 1:
         BCRB = [CRB(sigma, sigma, na, nq, matrix_const1, bound_sim,thresh_space[i],thresh_space[i]) for i in range(len(thresh_space))]

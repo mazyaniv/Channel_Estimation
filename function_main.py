@@ -478,7 +478,7 @@ def weighted_data_fun(theta, sigma1, sigma2, na, nq, matrix, thresh_real, thresh
     d = norm.pdf(zeta_real) ** 2 / (norm.cdf(zeta_real) * (norm.cdf(-zeta_real))) + norm.pdf(zeta_im) ** 2 / (
             norm.cdf(zeta_im) * (norm.cdf(-zeta_im)))
     if nq == 0:
-        return 1/((na/(sigma1**2)))  # d[0] since G is a block matrix
+        return 1/(abs(theta)**2+(na/(sigma1**2)))  # d[0] since G is a block matrix
     if na == 0:
         return 1 / (abs(theta)**2+((nq * d[0])/(2 * sigma2 ** 2)))
     else:
