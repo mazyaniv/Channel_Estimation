@@ -6,8 +6,8 @@ import math
 
 chosen_space = np.linspace(-3.5, 12.5, 27)
 sigma_space = 10**(-chosen_space/10)
-bound_sim = 500
-plot_dict = {'LMMSE': 0, 'MMSE': 1 ,'Approx': 1, 'OPT': 0,'WBCRB': 0, 'BCRB': 0}
+bound_sim = 1000
+plot_dict = {'LMMSE': 0, 'MMSE': 0 ,'Approx': 1, 'OPT': 0,'WBCRB': 0, 'BCRB': 0}
 resource = [[1,150,'red'],[2,100,'blue']]#,[2,40,'red'],[1,100,'black']]
 plot_result = 1
 save_to_mat = 0

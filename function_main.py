@@ -482,7 +482,7 @@ def weighted_data_fun(theta, sigma1, sigma2, na, nq, matrix, thresh_real, thresh
     if na == 0:
         return 1 / (abs(theta)**2+((nq * d[0])/(2 * sigma2 ** 2)))
     else:
-        return 1 / (abs(theta)**2+(na/(sigma1**2))+ ((nq*d[0])/(2*sigma2**2)))  #d[0] since G is a block matrix
+        return 1 / ((na/(sigma1**2))+ ((nq*d[0])/(2*sigma2**2)))  #d[0] since G is a block matrix
 def weighted_fun(theta, sigma1, sigma2, na, nq, matrix, thresh_real=0, thresh_im=0):
     zeta_real = (math.sqrt(2) / sigma2) * ((matrix[1] * theta).real - thresh_real)
     zeta_im = (math.sqrt(2) / sigma2) * ((matrix[1] * theta).imag - thresh_im)

@@ -6,14 +6,14 @@ import os
 import math
 
 plot_result = 1
-save_to_mat = 0
+save_to_mat = 1
 
 chosen_space = np.linspace(-5, 15, 27) #dB
 sigma_space = 10**(-chosen_space/10)
 list_output = []
 na,nq = 1,100
-bound_sim = 200
-plot_dict = {'LMMSE': 1, 'MMSE': 1 ,'Approx': 1, 'OPT':1,'WBCRB': 1, 'BCRB': 1}
+bound_sim = 10000
+plot_dict = {'LMMSE': 0, 'MMSE': 0 ,'Approx': 0, 'OPT':0,'WBCRB': 0, 'BCRB': 1}
 matrix_const0 = Matrix(na, 0)
 matrix_const1 = Matrix(na, nq)
 

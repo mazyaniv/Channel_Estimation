@@ -8,10 +8,10 @@ import math
 plot_result = 1
 save_to_mat = 0
 thresh_space = np.linspace(0, 2.5, 20)
-sigma = 0.5
-bound_sim = 500
+sigma = 2
+bound_sim = 200
 resource = [[1,100]]
-plot_dict = {'LMMSE': 1, 'MMSE': 1 ,'Approx': 1, 'OPT':1,'WBCRB': 1, 'BCRB': 1}
+plot_dict = {'LMMSE': 0, 'MMSE': 1 ,'Approx': 1, 'OPT':1,'WBCRB': 1, 'BCRB': 1}
 for na,nq in resource:
     list_output = []
     matrix_const0 = Matrix(na, 0)
