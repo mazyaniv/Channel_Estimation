@@ -384,6 +384,18 @@ def probability(sigma, na, nq, matrix, monte, thresh_real=0, thresh_im=0):  #for
             prob_vec[j] = 1
     return np.mean(prob_vec)
 
+def probability2(sigma, matrix, monte, thresh_real=0, thresh_im=0):  #for approximation
+    prob_vec = np.zeros((monte))
+    for j in range(monte):
+        real_teta = np.random.normal(mu, sigma_teta, M)
+        im_teta = np.random.normal(mu, sigma_teta, M)
+        teta = real_teta + 1j * im_teta
+        zeta_real = (math.sqrt(2) / sigma) * ((matrix[1] * teta).real - thresh_real)
+        zeta_im = (math.sqrt(2) / sigma) * ((matrix[1] * teta).imag - thresh_im)
+        prob_vec[j] = np.prod(norm.cdf(np.abs(zeta_real))) * np.prod(norm.cdf(np.abs(zeta_im)))
+    return np.mean(prob_vec)
+
+
 def probability_new(sigma, na, nq, matrix, monte,observ, thresh_real=0, thresh_im=0):  #for approximation
     prob_vec = np.zeros((monte))
     for j in range(monte):

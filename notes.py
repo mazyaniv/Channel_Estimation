@@ -38,15 +38,15 @@ matrix = Matrix(0, nq)
 # Jq = [J_q(sigma_space[i], sigma_space[i], na, nq, matrix, 50) for i in range(len(chosen_space))]
 # BCRB = [CRB(sigma_space[i], sigma_space[i], na, nq, matrix, 1000) for i in range(len(chosen_space))]
 # P = [P_xq(theta_range[i], -(np.ones(nq)+1j*np.ones(nq))/math.sqrt(2),0.05) for i in range(len(theta_range))]
-probability_vec = [probability(sigma_space[i],na,nq, matrix, 500) for i in range(len(chosen_space))]
-probability_vec2 = [probability_new(sigma_space[i],na,nq, matrix, 500,20) for i in range(len(chosen_space))]
+probability_vec = [probability2(sigma_space[i],matrix, 1000) for i in range(len(chosen_space))]
+probability_vec2 = [probability_new(sigma_space[i],na,nq, matrix, 100,20) for i in range(len(chosen_space))]
 # area = simps(P, theta_range)
 # print(f"Area under the curve: {area}")
 
 plt.figure(figsize=(10, 6))
 # plt.plot(theta_range, P, label='P_xq', linestyle='-', marker='.')
-plt.plot(chosen_space, probability_vec, linestyle='-', marker='.', label='prob_original')
-plt.plot(chosen_space, probability_vec2, linestyle='--', marker='x', label='prob_new')
+plt.plot(chosen_space, probability_vec, linestyle='-', marker='.', label='prob2')
+plt.plot(chosen_space, probability_vec2, linestyle='--', marker='x', label='prob')
 # plt.plot(chosen_space, BCRB, linestyle='-', marker='.', label='BCRB')
 # plt.xlabel('Theta')
 # plt.ylabel('P_xq')
